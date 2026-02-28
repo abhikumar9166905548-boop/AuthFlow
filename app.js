@@ -1,3 +1,4 @@
+let currentUserId = null; // Global variable user ID track karne ke liye
 // Iske peeche slash '/' mat lagana
 const API_URL = "https://rollera.onrender.com"; 
 
