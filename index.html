@@ -13,6 +13,10 @@
         button {background:#ff0050;color:#fff;font-weight:bold;cursor:pointer;}
         .modal-overlay {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;align-items:center;justify-content:center;}
         .modal-content {background:#000;width:90%;max-width:400px;padding:30px;border-radius:20px;border:1px solid #333;text-align:center;}
+        
+        /* Video Player Style */
+        .reel-card { background: #111; border-radius: 15px; margin-bottom: 20px; padding: 10px; border: 1px solid #222; }
+        video { width: 100%; border-radius: 10px; max-height: 450px; background: #000; }
     </style>
 </head>
 <body>
@@ -30,46 +34,45 @@
 <div id="signupModal" class="modal-overlay">
     <div class="modal-content" style="background: #fff; color: #000; border-radius: 1px; border: 1px solid #dbdbdb; max-width: 350px;">
         <h1 style="font-family: 'Cookie', cursive; font-size: 40px; margin-bottom: 10px;">Rollera</h1>
-        <p style="color: #8e8e8e; font-weight: 600; font-size: 17px; line-height: 20px; margin-bottom: 20px;">
-            Sign up to see photos and videos from your friends.
-        </p>
+        <p style="color: #8e8e8e; font-weight: 600; font-size: 17px; line-height: 20px; margin-bottom: 20px;">Sign up to see photos and videos from your friends.</p>
         
         <input id="signup-email" placeholder="Mobile number or email" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
         <input id="signup-password" type="password" placeholder="Password" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
         
         <div style="text-align: left; margin-top: 15px;">
-            <label style="font-size: 12px; color: #8e8e8e;">Birthday <span style="cursor:help;">❓</span></label>
+            <label style="font-size: 12px; color: #8e8e8e;">Birthday ❓</label>
             <div style="display: flex; gap: 5px; margin-top: 5px;">
-                <select id="dob-month" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;">
-                    <option>Month</option><option value="1">January</option><option value="2">February</option>
-                </select>
-                <select id="dob-day" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;">
-                    <option>Day</option>
-                </select>
-                <select id="dob-year" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;">
-                    <option>Year</option>
-                </select>
+                <select id="dob-month" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Month</option></select>
+                <select id="dob-day" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Day</option></select>
+                <select id="dob-year" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Year</option></select>
             </div>
         </div>
 
         <input id="signup-name" placeholder="Full Name" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
         <input id="signup-username" placeholder="Username" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
 
-        <p style="font-size: 12px; color: #8e8e8e; margin: 15px 0;">
-            People who use our service may have uploaded your contact information to Rollera. <a href="#" style="text-decoration: none; color: #00376b;">Learn more</a>.
-        </p>
-
-        <button onclick="verifyAndSignup()" style="background: #0095f6; color: #fff; border-radius: 8px; padding: 7px; font-size: 14px; margin-top: 0;">Sign up</button>
+        <button onclick="verifyAndSignup()" style="background: #0095f6; color: #fff; border-radius: 8px; padding: 7px; font-size: 14px; margin-top: 10px;">Sign up</button>
         
         <div style="margin-top: 20px; border-top: 1px solid #dbdbdb; padding-top: 15px;">
-            <p style="font-size: 14px;">Have an account? <a href="#" onclick="closeSignup()" style="color: #0095f6; text-weight: bold; text-decoration: none;">Log in</a></p>
+            <p style="font-size: 14px;">Have an account? <a href="#" onclick="closeSignup()" style="color: #0095f6; font-weight: bold; text-decoration: none;">Log in</a></p>
         </div>
     </div>
 </div>
 
 <div id="app" style="display:none;">
-    <h2 style="text-align:center;">Welcome to Rollera Feed!</h2>
-    <button onclick="localStorage.clear(); location.reload()">Logout</button>
+    <h2 style="text-align:center;">🔥 Rollera Feed</h2>
+    
+    <div style="background: #111; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px dashed #ff0050;">
+        <input type="file" id="reelVideo" accept="video/*" style="margin-bottom: 10px;">
+        <input id="reelCaption" placeholder="Write a caption..." style="margin-bottom: 10px;">
+        <button onclick="uploadMyReel()" style="background: #7f00ff;">Post Reel 🚀</button>
+    </div>
+
+    <div id="reelsContainer">
+        <p style="text-align:center; color:#888;">No reels yet. Be the first to post!</p>
+    </div>
+
+    <button onclick="localStorage.clear(); location.reload()" style="background: #333; margin-top: 20px;">Logout</button>
 </div>
 
 <script src="app.js"></script>
