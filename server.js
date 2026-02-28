@@ -1,39 +1,55 @@
 const express = require('express');
-const app = express();
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+const cors = require('cors');
 const jwt = require("jsonwebtoken");
 
-// Port definition (Render ke liye zaroori)
-const PORT = process.env.PORT || 3000;
-const mongoose = require('mongoose'); // Pehle mongoose import karein
-const cors = require('cors'); // CORS zaroori hai frontend ke liye
-
-app.use(cors()); // Ise app.use(express.json()) ke upar likhein
-
-// MongoDB Connection Logic
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected Successfully! ✅"))
-  .catch(err => console.log("DB Connection Error: ❌", err));
+const app = express();
 app.use(express.json());
+app.use(cors());
 
-// Aapka middleware function (jo aapne screenshot mein bheja tha)
+// 1. Database Connection
+const MONGO_URI = process.env.MONGO_URI;
+mongoose.connect(MONGO_URI)
+.then(() => console.log("MongoDB Connected Successfully! ✅"))
+.catch(err => console.log("DB Connection Error: ", err));
+
+// 2. User Schema (Data structure)
+const userSchema = new mongoose.Schema({
+username: { type: String, required: true, unique: true },
+password: { type: String, required: true }
+});
+const User = mongoose.model('User', userSchema);
+
+// 3. Verify Token Middleware
 const verifyToken = (req, res, next) => {
-    const token = req.headers["authorization"];
-    if(!token) return res.status(401).json({message:"Access Denied"});
-    try {
-        const verified = jwt.verify(token, "SECRETKEY");
-        req.user = verified;
-        next();
-    } catch(err) {
-        res.status(400).json({message:"Invalid Token"});
-    }
+const token = req.headers["authorization"];
+if(!token) return res.status(401).json({message:"Access Denied"});
+try {
+const verified = jwt.verify(token, "SECRETKEY");
+req.user = verified;
+next();
+} catch(err) {
+res.status(400).json({message:"Invalid Token"});
+}
 };
 
-// Ek basic route taki check ho sake ki server chal raha hai
-app.get('/', (req, res) => {
-    res.send("Server is running!");
+// 4. SIGNUP ROUTE (Yahi naya kaam hai)
+app.post('/signup', async (req, res) => {
+try {
+const { username, password } = req.body;
+const hashedPassword = await bcrypt.hash(password, 10);
+const newUser = new User({ username, password: hashedPassword });
+await newUser.save();
+res.status(201).json({ message: "User registered successfully! 🎉" });
+} catch (err) {
+res.status(500).json({ error: err.message });
+}
 });
 
+app.get('/', (req, res) => res.send("Rollera Server is Live! 🚀"));
+
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
