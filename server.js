@@ -4,7 +4,15 @@ const jwt = require("jsonwebtoken");
 
 // Port definition (Render ke liye zaroori)
 const PORT = process.env.PORT || 3000;
+const mongoose = require('mongoose'); // Pehle mongoose import karein
+const cors = require('cors'); // CORS zaroori hai frontend ke liye
 
+app.use(cors()); // Ise app.use(express.json()) ke upar likhein
+
+// MongoDB Connection Logic
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected Successfully! ✅"))
+  .catch(err => console.log("DB Connection Error: ❌", err));
 app.use(express.json());
 
 // Aapka middleware function (jo aapne screenshot mein bheja tha)
@@ -28,3 +36,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
