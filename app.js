@@ -21,10 +21,11 @@ async function handleSignup() {
         if (res.ok) {
             alert("User Created Successfully! 🎉 Ab Login karo.");
         } else {
-            alert("Error: " + data.message);
+            alert("Error: " + (data.message || "Signup fail ho gaya"));
         }
     } catch (err) {
-        alert("Server connect nahi hua!");
+        console.error(err);
+        alert("Server connect nahi ho pa raha!");
     }
 }
 
@@ -32,6 +33,11 @@ async function handleSignup() {
 async function handleLogin() {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
+
+    if (!email || !password) {
+        alert("Email aur Password bhariye!");
+        return;
+    }
 
     try {
         const res = await fetch(`${API_URL}/login`, {
@@ -46,10 +52,28 @@ async function handleLogin() {
             document.getElementById("auth").style.display = "none";
             document.getElementById("app").style.display = "block";
             alert("Login Ho Gaya! 🔥");
+            loadReels();
         } else {
-            alert("Galat Password!");
+            alert("Galat Password ya Email!");
         }
     } catch (err) {
-        alert("Login fail!");
+        alert("Login fail ho gaya!");
+    }
+}
+
+// --- LOAD REELS ---
+async function loadReels() {
+    try {
+        const res = await fetch(`${API_URL}/reels`);
+        const reels = await res.json();
+        const feed = document.getElementById("feed");
+        feed.innerHTML = reels.map(r => `
+            <div class="reel">
+                <video src="${API_URL}${r.videoUrl}" controls loop></video>
+                <p style="padding:10px;">${r.caption}</p>
+            </div>
+        `).join("");
+    } catch (err) {
+        console.log("Reels load nahi hui");
     }
 }
