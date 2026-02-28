@@ -1,6 +1,6 @@
 const API_URL = "https://rollera.onrender.com"; 
 
-// --- 1. Birthday Dropdowns Bharne ka Logic ---
+// --- 1. Birthday Dropdowns ---
 window.onload = () => {
     const monthSelect = document.getElementById('dob-month');
     const daySelect = document.getElementById('dob-day');
@@ -12,139 +12,95 @@ window.onload = () => {
     if(yearSelect) for (let i = 2024; i >= 1950; i--) yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
 };
 
-// --- 2. Signup & Login Logic ---
-function openSignup() { document.getElementById("signupModal").style.display = "flex"; }
-function closeSignup() { document.getElementById("signupModal").style.display = "none"; }
-
+// --- 2. Login Logic (Fixed with Safety) ---
 async function handleLogin() {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-    
-    const res = await fetch(`${API_URL}/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
+    const emailField = document.getElementById("login-email");
+    const passwordField = document.getElementById("login-password");
 
-    if (res.ok) {
+    if (!emailField || !passwordField) {
+        return alert("Login fields not found! Check your HTML IDs.");
+    }
 
-        // --- 6. NAVIGATION & REELS LOGIC ---
+    const email = emailField.value;
+    const password = passwordField.value;
 
+    try {
+        const res = await fetch(`${API_URL}/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok) {
+            alert("Login Successful! 🔥");
+            
+            // Safety Check for Header
+            const header = document.getElementById("mainHeader");
+            if (header) header.style.display = "none";
+
+            // Switch Screens
+            const authDiv = document.getElementById("auth");
+            const appDiv = document.getElementById("app");
+            
+            if (authDiv) authDiv.style.display = "none";
+            if (appDiv) appDiv.style.display = "block";
+            
+        } else {
+            alert("Login Failed! Please check email/password.");
+        }
+    } catch (err) {
+        console.error("Login Error:", err);
+        alert("Server connection failed!");
+    }
+}
+
+// --- 3. Navigation Functions (Reels Toggle) ---
 function showReels() {
-    // Feed chupao, Reels dikhao
-    document.querySelector('.story-container').style.display = 'none';
-    document.getElementById('reelsContainer').style.display = 'none';
-    document.getElementById('reelsView').style.display = 'block';
-    
-    // Pehla video play karo
-    const firstVideo = document.querySelector('#reelsView video');
-    if(firstVideo) firstVideo.play();
+    const reelsView = document.getElementById('reelsView');
+    const reelsContainer = document.getElementById('reelsContainer');
+    const storyContainer = document.querySelector('.story-container');
+
+    if (reelsView) reelsView.style.display = 'block';
+    if (reelsContainer) reelsContainer.style.display = 'none';
+    if (storyContainer) storyContainer.style.display = 'none';
+
+    // Play first video
+    const vid = document.querySelector('#reelsView video');
+    if (vid) vid.play();
 }
 
 function showHome() {
-    // Reels chupao, Feed dikhao
-    document.querySelector('.story-container').style.display = 'flex';
-    document.getElementById('reelsContainer').style.display = 'block';
-    document.getElementById('reelsView').style.display = 'none';
-    
-    // Sare videos pause kar do
+    const reelsView = document.getElementById('reelsView');
+    const reelsContainer = document.getElementById('reelsContainer');
+    const storyContainer = document.querySelector('.story-container');
+
+    if (reelsView) reelsView.style.display = 'none';
+    if (reelsContainer) reelsContainer.style.display = 'block';
+    if (storyContainer) storyContainer.style.display = 'flex';
+
+    // Stop videos
     document.querySelectorAll('video').forEach(v => v.pause());
 }
 
-// Auto Play/Pause logic on scroll
-document.getElementById('reelsView').addEventListener('scroll', () => {
-    const videos = document.querySelectorAll('#reelsView video');
-    videos.forEach(video => {
-        const rect = video.getBoundingClientRect();
-        if (rect.top >= 0 && rect.top < window.innerHeight / 2) {
-            video.play();
-        } else {
-            video.pause();
-        }
-    });
-});
-        alert("Login Successful! 🔥");
-        
-        // --- YE RAHI WO LINE JO HUMNE ADD KI HAI ---
-        if(document.getElementById("mainHeader")) {
-            document.getElementById("mainHeader").style.display = "none";
-        }
-        // ------------------------------------------
-
-        document.getElementById("auth").style.display = "none";
-        document.getElementById("app").style.display = "block";
-    } else { 
-        alert("Login Failed!"); 
-    }
-}
-
-async function verifyAndSignup() {
-    const data = {
-        name: document.getElementById("signup-name").value,
-        username: document.getElementById("signup-username").value,
-        email: document.getElementById("signup-email").value,
-        password: document.getElementById("signup-password").value,
-        birthday: `${document.getElementById("dob-day").value}-${document.getElementById("dob-month").value}-${document.getElementById("dob-year").value}`,
-        otp: "123456" // Default testing ke liye
-    };
-
-    const res = await fetch(`${API_URL}/verify-signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-    });
-
-    if (res.ok) {
-        alert("Account Created! 🎉 Ab login karein.");
-        location.reload();
-    } else { alert("Signup fail!"); }
-}
-
-// --- 3. REELS UPLOAD & FEED LOGIC ---
-async function uploadMyReel() {
-    const videoFile = document.getElementById("reelVideo").files[0];
-    const caption = document.getElementById("reelCaption").value;
-
-    if (!videoFile) return alert("Please select a video first!");
-
-    alert("Video uploading feature coming soon! Backend setup ho raha hai.");
-    console.log("Uploading:", videoFile.name, "with caption:", caption);
-}
-
-async function loadFeed() {
-    const container = document.getElementById("reelsContainer");
-    // Future mein yahan reels backend se load hongi
-}
-// --- 4. LIKE SYSTEM LOGIC ---
+// --- 4. Like System ---
 function toggleLike(element) {
-    const heartIcon = element;
-    const likeCountElement = heartIcon.parentElement.nextElementSibling.querySelector('b');
-    let currentLikes = parseInt(likeCountElement.innerText);
-
-    // Check if already liked
-    if (heartIcon.classList.contains('fa-regular')) {
-        // LIKE KARNA
-        heartIcon.classList.remove('fa-regular');
-        heartIcon.classList.add('fa-solid');
-        heartIcon.style.color = "red";
-        likeCountElement.innerText = (currentLikes + 1) + " likes";
-        
-        // Chhota sa animation effect
-        heartIcon.style.transform = "scale(1.3)";
-        setTimeout(() => heartIcon.style.transform = "scale(1)", 200);
+    if (!element) return;
+    
+    if (element.classList.contains('fa-regular')) {
+        element.classList.replace('fa-regular', 'fa-solid');
+        element.style.color = "red";
     } else {
-        // UNLIKE KARNA
-        heartIcon.classList.remove('fa-solid');
-        heartIcon.classList.add('fa-regular');
-        heartIcon.style.color = "white";
-        likeCountElement.innerText = (currentLikes - 1) + " likes";
+        element.classList.replace('fa-solid', 'fa-regular');
+        element.style.color = "white";
     }
 }
 
-// --- 5. IMAGE ERROR HANDLER (Professional Touch) ---
-// Agar koi image load nahi hui toh ye default image laga dega
-document.addEventListener('error', function (e) {
-    if (e.target.tagName.toLowerCase() === 'img') {
-        e.target.src = "https://via.placeholder.com/500x600?text=Rollera+Image";
-    }
-}, true);
+// Signup Modal Helpers
+function openSignup() { 
+    const modal = document.getElementById("signupModal");
+    if(modal) modal.style.display = "flex"; 
+}
+function closeSignup() { 
+    const modal = document.getElementById("signupModal");
+    if(modal) modal.style.display = "none"; 
+}
