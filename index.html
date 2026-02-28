@@ -1,16 +1,22 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Rollera Reels</title>
-<link rel="stylesheet" href="style.css">
+    <title>Rollera Reels</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body style="background-color: #121212; color: white; text-align: center; font-family: Arial;">
 
-<div class="reel-container" id="feed"></div>
+    <h1>Welcome to Rollera 🚀</h1>
+    
+    <div style="margin-top: 50px;">
+        <button onclick="signup()" style="padding: 10px 20px; cursor: pointer;">Signup</button>
+        <button onclick="login()" style="padding: 10px 20px; cursor: pointer; margin-left: 10px;">Login</button>
+    </div>
 
-<script src="app.js"></script>
+    <div class="reel-container" id="feed">
+        <p>No reels yet. Login to see content!</p>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
-
-
-
