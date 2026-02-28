@@ -4,113 +4,104 @@
     <meta charset="UTF-8">
     <title>Rollera • Final Boss</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body{margin:0;background:#000;color:#fff;font-family:system-ui; overflow-x: hidden;}
-        header{padding:20px;text-align:center;background:linear-gradient(90deg,#ff0050,#7f00ff);font-size:24px;font-weight:bold;}
-        #auth, #app {padding:0px;} /* Feed ke liye padding hatayi */
-        #auth {padding: 20px;}
-        input, button {width:100%;padding:15px;margin-top:10px;border-radius:10px;border:none;box-sizing:border-box;}
-        input {background:#111;color:#fff;border:1px solid #333;}
-        button {background:#ff0050;color:#fff;font-weight:bold;cursor:pointer;}
-        .modal-overlay {display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:1000;align-items:center;justify-content:center;}
-        .modal-content {background:#000;width:90%;max-width:400px;padding:30px;border-radius:20px;border:1px solid #333;text-align:center;}
+        body{margin:0;background:#000;color:#fff;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;}
+        #mainHeader {padding:15px; text-align:center; background: #000; border-bottom: 0.5px solid #262626; font-size:24px; font-weight:bold; position: sticky; top: 0; z-index: 100;}
         
-        /* Story Styling */
-        .story-circle { flex-shrink: 0; cursor: pointer; padding: 5px; }
-        .reel-card { background: #000; border-bottom: 0.5px solid #262626; margin-bottom: 10px; }
-        video { width: 100%; display: block; background: #000; }
+        #auth {padding: 20px; max-width: 400px; margin: auto;}
+        input {width:100%; padding:12px; margin-top:10px; border-radius:5px; border: 0.5px solid #363636; background:#121212; color:#fff; box-sizing:border-box;}
+        button {width:100%; padding:10px; margin-top:15px; border-radius:8px; border:none; background:#0095f6; color:#fff; font-weight:bold; cursor:pointer;}
+
+        /* App Layout Styles */
+        #app { background: #000; min-height: 100vh; padding-bottom: 70px; }
+        
+        /* Stories */
+        .story-container { display: flex; overflow-x: auto; padding: 15px 10px; border-bottom: 0.5px solid #262626; gap: 12px; scrollbar-width: none; }
+        .story-container::-webkit-scrollbar { display: none; }
+        .story-wrapper { text-align: center; width: 75px; flex-shrink: 0; }
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); padding: 2px; margin: auto; }
+        .story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid black; object-fit: cover; }
+        .story-wrapper span { font-size: 11px; display: block; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* Feed Post */
+        .post-card { border-bottom: 0.5px solid #262626; margin-bottom: 10px; width: 100%; max-width: 500px; margin: auto; }
+        .post-header { display: flex; align-items: center; padding: 10px; gap: 10px; }
+        .post-header img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid #333; }
+        .post-img { width: 100%; height: auto; max-height: 600px; object-fit: cover; }
+        .post-actions { display: flex; padding: 12px; gap: 18px; font-size: 22px; }
+        .post-info { padding: 0 12px 12px 12px; font-size: 14px; }
+        .post-info b { cursor: pointer; }
+
+        /* Bottom Navbar */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 0.5px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
+        .bottom-nav i { font-size: 22px; cursor: pointer; color: #fff; }
+
+        .modal-overlay {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;}
     </style>
 </head>
 <body>
 
-<header id="mainHeader">🔥 Rollera</header>
+<header id="mainHeader">Rollera</header>
 
 <div id="auth">
-    <h3>Login / Signup</h3>
-    <input id="login-email" placeholder="Email">
+    <h1 style="text-align: center; font-family: 'Brush Script MT', cursive; font-size: 45px; margin-bottom: 30px;">Rollera</h1>
+    <input id="login-email" placeholder="Phone number, username, or email">
     <input id="login-password" type="password" placeholder="Password">
-    <button onclick="handleLogin()">Login</button>
-    <button onclick="openSignup()" style="background:#333;margin-top:10px;">Create Account</button>
-</div>
-
-<div id="signupModal" class="modal-overlay">
-    <div class="modal-content" style="background: #fff; color: #000; border-radius: 1px; border: 1px solid #dbdbdb; max-width: 350px;">
-        <h1 style="font-family: 'Cookie', cursive; font-size: 40px; margin-bottom: 10px;">Rollera</h1>
-        <p style="color: #8e8e8e; font-weight: 600; font-size: 17px; line-height: 20px; margin-bottom: 20px;">Sign up to see photos and videos from your friends.</p>
-        
-        <input id="signup-email" placeholder="Mobile number or email" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
-        <input id="signup-password" type="password" placeholder="Password" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
-        
-        <div style="text-align: left; margin-top: 15px;">
-            <label style="font-size: 12px; color: #8e8e8e;">Birthday ❓</label>
-            <div style="display: flex; gap: 5px; margin-top: 5px;">
-                <select id="dob-month" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Month</option></select>
-                <select id="dob-day" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Day</option></select>
-                <select id="dob-year" style="flex: 1; padding: 5px; border: 1px solid #dbdbdb; background: #fafafa;"><option>Year</option></select>
-            </div>
-        </div>
-
-        <input id="signup-name" placeholder="Full Name" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
-        <input id="signup-username" placeholder="Username" style="background: #fafafa; border: 1px solid #dbdbdb; color: #262626;">
-
-        <button onclick="verifyAndSignup()" style="background: #0095f6; color: #fff; border-radius: 8px; padding: 7px; font-size: 14px; margin-top: 10px;">Sign up</button>
-        
-        <div style="margin-top: 20px; border-top: 1px solid #dbdbdb; padding-top: 15px;">
-            <p style="font-size: 14px;">Have an account? <a href="#" onclick="closeSignup()" style="color: #0095f6; font-weight: bold; text-decoration: none;">Log in</a></p>
-        </div>
+    <button onclick="handleLogin()">Log in</button>
+    <div style="margin-top: 20px; text-align: center; color: #8e8e8e; font-size: 14px;">
+        Don't have an account? <span onclick="openSignup()" style="color: #0095f6; font-weight: bold; cursor: pointer;">Sign up</span>
     </div>
 </div>
 
-<div id="app" style="display:none; background: #000; min-height: 100vh; padding-bottom: 60px;">
-    
-    <div style="display: flex; overflow-x: auto; padding: 10px; border-bottom: 0.5px solid #262626; gap: 15px; scrollbar-width: none;">
-        <div class="story-circle" onclick="alert('Add Story')">
-            <div style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid #ff0050; padding: 2px;">
-                <img src="https://via.placeholder.com/65" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
-            </div>
-            <p style="font-size: 11px; text-align: center; margin-top: 5px;">Your story</p>
+<div id="app" style="display:none;">
+    <div class="story-container">
+        <div class="story-wrapper">
+            <div class="story-ring"><img src="https://i.pravatar.cc/150?u=me"></div>
+            <span>Your story</span>
         </div>
-        <div class="story-circle">
-            <div style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid #ff0050; padding: 2px;">
-                <img src="https://i.pravatar.cc/65?img=1" style="width: 100%; height: 100%; border-radius: 50%;">
-            </div>
-            <p style="font-size: 11px; text-align: center; margin-top: 5px;">himanshu_</p>
+        <div class="story-wrapper">
+            <div class="story-ring"><img src="https://i.pravatar.cc/150?img=1"></div>
+            <span>himanshu_</span>
         </div>
-        <div class="story-circle">
-            <div style="width: 65px; height: 65px; border-radius: 50%; border: 2px solid #ff0050; padding: 2px;">
-                <img src="https://i.pravatar.cc/65?img=2" style="width: 100%; height: 100%; border-radius: 50%;">
-            </div>
-            <p style="font-size: 11px; text-align: center; margin-top: 5px;">sunil_sk</p>
+        <div class="story-wrapper">
+            <div class="story-ring"><img src="https://i.pravatar.cc/150?img=2"></div>
+            <span>sunil_sk</span>
         </div>
     </div>
 
     <div id="reelsContainer">
-        <div class="reel-card">
-            <div style="display: flex; align-items: center; padding: 10px; gap: 10px;">
-                <img src="https://i.pravatar.cc/32?img=3" style="width: 32px; height: 32px; border-radius: 50%;">
+        <div class="post-card">
+            <div class="post-header">
+                <img src="https://i.pravatar.cc/150?img=3">
                 <span style="font-weight: 600; font-size: 14px;">collectorbabu_</span>
             </div>
-            <img src="https://via.placeholder.com/500x600" style="width: 100%; display: block;">
-            <div style="padding: 12px;">
-                <div style="display: flex; gap: 15px; margin-bottom: 8px; font-size: 20px;">
-                    <span style="cursor:pointer">❤️</span> <span style="cursor:pointer">💬</span> <span style="cursor:pointer">✈️</span>
-                </div>
-                <p style="font-size: 14px; margin: 0;"><b>856 likes</b></p>
-                <p style="font-size: 14px; margin: 5px 0;"><b>collectorbabu_</b> Bhai time lagega but Flex to isi car se karna hai' ❤️🔥</p>
+            <img class="post-img" src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80">
+            
+            <div class="post-actions">
+                <i class="fa-regular fa-heart"></i>
+                <i class="fa-regular fa-comment"></i>
+                <i class="fa-regular fa-paper-plane"></i>
+            </div>
+            <div class="post-info">
+                <p><b>856 likes</b></p>
+                <p><b>collectorbabu_</b> Bhai time lagega but Flex to isi car se karna hai' ❤️🔥</p>
             </div>
         </div>
     </div>
 
-    <div style="position: fixed; bottom: 0; width: 100%; background: #000; border-top: 0.5px solid #262626; display: flex; justify-content: space-around; padding: 15px 0; z-index: 1000;">
-        <span onclick="loadFeed()" style="font-size: 24px; cursor: pointer;">🏠</span>
-        <span style="font-size: 24px; cursor: pointer;">🔍</span>
-        <span onclick="document.getElementById('reelVideo').click()" style="font-size: 24px; cursor: pointer;">➕</span>
-        <span style="font-size: 24px; cursor: pointer;">🎬</span>
-        <span onclick="alert('Profile Page')" style="font-size: 24px; cursor: pointer;">👤</span>
+    <div class="bottom-nav">
+        <i class="fa-solid fa-house" onclick="location.reload()"></i>
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <i class="fa-regular fa-square-plus" onclick="document.getElementById('reelVideo').click()"></i>
+        <i class="fa-solid fa-clapperboard"></i>
+        <i class="fa-regular fa-circle-user"></i>
     </div>
 
     <input type="file" id="reelVideo" accept="video/*" style="display:none;" onchange="uploadMyReel()">
 </div>
+
+<div id="signupModal" class="modal-overlay"> ... </div>
 
 <script src="app.js"></script>
 </body>
