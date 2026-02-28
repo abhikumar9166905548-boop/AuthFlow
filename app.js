@@ -348,3 +348,56 @@ function handleLogout() {
         alert("Logged out successfully! Dobara aana 👋");
     }
 }
+
+// --- 12. Reels Vertical Scroll Logic ---
+async function showReels() {
+    hideAllViews();
+    const reelsView = document.getElementById("reelsView");
+    reelsView.style.display = "block";
+    reelsView.innerHTML = ""; // Purana content clear karo
+
+    try {
+        // Maan lo backend se reels aa rahi hain
+        const res = await fetch(`${API_URL}/reels`); 
+        const reels = await res.json();
+
+        reels.forEach(reel => {
+            const reelContainer = document.createElement("div");
+            reelContainer.className = "reel-video-container";
+            reelContainer.style.height = "100vh";
+            reelContainer.style.width = "100%";
+            reelContainer.style.position = "relative";
+            reelContainer.style.scrollSnapAlign = "start";
+
+            reelContainer.innerHTML = `
+                <video src="${reel.videoUrl}" loop muted playsinline 
+                       style="height: 100%; width: 100%; object-fit: cover;"
+                       onclick="togglePlayPause(this)">
+                </video>
+                <div class="reel-overlay" style="position: absolute; bottom: 80px; left: 15px; z-index: 10;">
+                    <b style="font-size: 16px;">@${reel.username}</b>
+                    <p style="font-size: 14px; margin-top: 5px;">${reel.caption}</p>
+                </div>
+                <div class="reel-side-icons" style="position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; font-size: 25px;">
+                    <div onclick="toggleLike(this.children[0])"><i class="fa-regular fa-heart"></i><p style="font-size:12px; text-align:center;">${reel.likes}</p></div>
+                    <div><i class="fa-regular fa-comment"></i><p style="font-size:12px; text-align:center;">${reel.comments}</p></div>
+                    <div><i class="fa-regular fa-paper-plane"></i></div>
+                </div>
+            `;
+            reelsView.appendChild(reelContainer);
+        });
+
+        // Auto-play first video
+        const firstVideo = reelsView.querySelector("video");
+        if(firstVideo) firstVideo.play();
+
+    } catch (err) {
+        console.error("Reels load karne mein dikat:", err);
+    }
+}
+
+// Video play/pause on click
+function togglePlayPause(video) {
+    if (video.paused) video.play();
+    else video.pause();
+}
