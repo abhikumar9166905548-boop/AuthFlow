@@ -1,20 +1,6 @@
 const API_URL = "https://rollera.onrender.com";
 
-// Signup
-async function handleSignup() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    const res = await fetch(`${API_URL}/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    alert(data.message || "Error");
-}
-
-// Login
+// LOGIN
 async function handleLogin() {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
@@ -30,30 +16,31 @@ async function handleLogin() {
         localStorage.setItem("token", data.token);
         document.getElementById('auth').style.display = "none";
         document.getElementById('app').style.display = "block";
-        loadReels();
+        alert("Welcome to Rollera! 🚀");
     } else {
-        alert(data.message || "Login Failed");
+        alert(data.message);
     }
 }
 
-// Load Reels
-async function loadReels() {
-    const res = await fetch(`${API_URL}/reels`);
-    const reels = await res.json();
-    const feed = document.getElementById('feed');
-    feed.innerHTML = "";
+// ADVANCE UPLOAD (Multer ready)
+async function uploadReel() {
+    const file = document.getElementById('videoFile').files[0];
+    const caption = document.getElementById('caption').value;
+    
+    if (!file) return alert("Video select karo!");
 
-    reels.forEach(r => {
-        feed.innerHTML += `
-            <div class="reel">
-                <video src="${r.videoUrl}" autoplay muted loop></video>
-                <div class="caption"><b>@User</b><br>${r.caption}</div>
-                <div class="actions">❤️ ${r.likes || 0}</div>
-            </div>`;
+    const formData = new FormData();
+    formData.append('video', file);
+    formData.append('caption', caption);
+
+    const res = await fetch(`${API_URL}/upload`, {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + localStorage.getItem("token") },
+        body: formData
     });
+
+    const data = await res.json();
+    alert(data.message || "Upload Successful!");
 }
 
-function logout() {
-    localStorage.clear();
-    location.reload();
-}
+// SIGNUP function bhi handleSignup naam se bana lena same login ki tarah
