@@ -1,12 +1,24 @@
 const API_URL = "https://rollera.onrender.com";
 
-// --- SIGNUP FUNCTION ---
-async function handleSignup() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+function openSignup() {
+    document.getElementById("signupModal").style.display = "block";
+}
 
-    if (!email || !password) {
-        alert("Bhai, Email aur Password toh dalo!");
+function closeSignup() {
+    document.getElementById("signupModal").style.display = "none";
+}
+
+async function handleSignup() {
+    const userData = {
+        name: document.getElementById("name").value,
+        age: document.getElementById("age").value,
+        email: document.getElementById("email").value,
+        mobile: document.getElementById("mobile").value,
+        password: document.getElementById("password").value
+    };
+
+    if (!userData.email || !userData.password || !userData.name) {
+        alert("Bhai, saari details bharna zaroori hai!");
         return;
     }
 
@@ -14,47 +26,17 @@ async function handleSignup() {
         const res = await fetch(`${API_URL}/signup`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify(userData)
         });
 
         const data = await res.json();
         if (res.ok) {
-            alert("User Created Successfully! 🎉 Ab Login karo.");
+            alert("Badhai ho! Account ban gaya. 🎉");
+            closeSignup();
         } else {
-            alert("Error: " + (data.message || "Signup fail ho gaya"));
+            alert("Error: " + data.message);
         }
     } catch (err) {
-        alert("Server connect nahi ho raha!");
-    }
-}
-
-// --- LOGIN FUNCTION ---
-async function handleLogin() {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    if (!email || !password) {
-        alert("Email aur Password bhariye!");
-        return;
-    }
-
-    try {
-        const res = await fetch(`${API_URL}/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await res.json();
-        if (res.ok) {
-            localStorage.setItem("token", data.token);
-            document.getElementById("auth").style.display = "none";
-            document.getElementById("app").style.display = "block";
-            alert("Login Ho Gaya! 🔥");
-        } else {
-            alert("Galat Password ya Email!");
-        }
-    } catch (err) {
-        alert("Login fail ho gaya!");
+        alert("Server connection fail!");
     }
 }
