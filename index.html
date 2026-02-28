@@ -37,6 +37,9 @@
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 0.5px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
         .bottom-nav i { font-size: 22px; cursor: pointer; color: #fff; }
 
+        /* Search Item Styling */
+        .search-item:active { background: #1a1a1a; }
+
         /* Reels Snap Container */
         #reelsView { scroll-snap-type: y mandatory; }
         .reel-video-container { scroll-snap-align: start; }
@@ -67,60 +70,25 @@
                 <div class="story-ring"><img src="https://i.pravatar.cc/150?u=me"></div>
                 <span>Your story</span>
             </div>
-            <div class="story-wrapper">
-                <div class="story-ring"><img src="https://i.pravatar.cc/150?img=1"></div>
-                <span>himanshu_</span>
-            </div>
-            <div class="story-wrapper">
-                <div class="story-ring"><img src="https://i.pravatar.cc/150?img=2"></div>
-                <span>sunil_sk</span>
-            </div>
         </div>
 
         <div id="reelsContainer">
-            <div class="post-card">
-                <div class="post-header">
-                    <img src="https://i.pravatar.cc/150?img=3">
-                    <span style="font-weight: 600; font-size: 14px;">collectorbabu_</span>
-                </div>
-                <img class="post-img" src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80">
-                <div class="post-actions">
-                    <i class="fa-regular fa-heart" onclick="toggleLike(this)"></i>
-                    <i class="fa-regular fa-comment"></i>
-                    <i class="fa-regular fa-paper-plane"></i>
-                </div>
-                <div class="post-info">
-                    <p><b>856 likes</b></p>
-                    <p><b>collectorbabu_</b> Bhai time lagega but Flex to isi car se karna hai' ❤️🔥</p>
-                </div>
             </div>
-        </div>
     </div>
 
     <div id="searchView" style="display:none; padding: 10px 0;">
         <div style="padding: 10px;">
             <div style="background: #262626; border-radius: 10px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-magnifying-glass" style="color: #8e8e8e; font-size: 14px;"></i>
-                <input type="text" placeholder="Search" style="background: transparent; border: none; margin: 0; padding: 0; width: 100%; outline: none; font-size: 16px; color: white;">
+                <input type="text" id="search-input" placeholder="Search" oninput="handleSearch()" style="background: transparent; border: none; margin: 0; padding: 0; width: 100%; outline: none; font-size: 16px; color: white;">
             </div>
         </div>
-
-        <div id="exploreGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 5px;">
-            <img src="https://picsum.photos/300/300?random=1" style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
-            <img src="https://picsum.photos/300/300?random=2" style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
-            <img src="https://picsum.photos/300/300?random=3" style="width: 100%; aspect-ratio: 1/1; object-fit: cover;">
-        </div>
+        <div id="searchResults" style="margin-top: 10px;"></div>
+        <div id="exploreGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 5px;"></div>
     </div>
 
     <div id="reelsView" style="display:none; height: 100vh; background: #000; overflow-y: scroll; scrollbar-width: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 999;">
-        <div class="reel-video-container" style="height: 100vh; width: 100%; position: relative;">
-            <video src="https://www.w3schools.com/html/mov_bbb.mp4" loop muted playsinline style="height: 100%; width: 100%; object-fit: cover;"></video>
-            <div style="position: absolute; right: 15px; bottom: 120px; display: flex; flex-direction: column; gap: 20px; font-size: 25px;">
-                <div onclick="toggleLike(this.children[0])" style="text-align:center;"><i class="fa-regular fa-heart"></i><p style="font-size:12px;">1.2k</p></div>
-                <div style="text-align:center;"><i class="fa-regular fa-comment"></i><p style="font-size:12px;">45</p></div>
-            </div>
         </div>
-    </div>
 
     <div id="profileView" style="display:none; padding: 20px 10px;">
         <div style="display: flex; align-items: center; gap: 25px; margin-bottom: 20px;">
@@ -129,9 +97,15 @@
             </div>
             <div style="flex-grow: 1;">
                 <h2 id="profile-username" style="margin: 0; font-size: 20px;">user_name</h2>
-                <button style="background: #363636; color: #fff; width: 100%; margin-top: 10px; padding: 6px; font-size: 13px;">Edit Profile</button>
+                <div style="display: flex; flex-direction: column; gap: 5px; margin-top: 10px;">
+                    <button style="background: #363636; color: #fff; padding: 6px; font-size: 13px; border-radius: 4px; border: none;">Edit Profile</button>
+                    <button onclick="handleLogout()" style="width:100%; padding:8px; background:#ed4956; color:white; border:none; border-radius:4px; font-weight:bold; cursor:pointer;">Log Out</button>
+                </div>
             </div>
         </div>
+        
+        <div id="userPostGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;">
+            </div>
     </div>
 
     <div class="bottom-nav">
@@ -141,13 +115,12 @@
         <i class="fa-solid fa-clapperboard" onclick="showReels()"></i>
         <i class="fa-regular fa-circle-user" onclick="showProfile()"></i>
     </div>
-    <input type="file" id="reelVideo" accept="video/*" style="display:none;" onchange="uploadMyReel()">
+    <input type="file" id="reelVideo" accept="video/*,image/*" style="display:none;" onchange="uploadMyReel()">
 </div>
 
 <div id="signupModal" class="modal-overlay"> 
     <div style="background: #000; width: 90%; max-width: 400px; padding: 25px; border-radius: 12px; border: 1px solid #262626; position: relative; max-height: 90vh; overflow-y: auto;">
         <i class="fa-solid fa-xmark" onclick="closeSignup()" style="position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer;"></i>
-        
         <h1 style="text-align: center; font-family: 'Brush Script MT', cursive; font-size: 40px; margin-bottom: 10px;">Rollera</h1>
         <p style="text-align: center; color: #8e8e8e; font-weight: bold; margin-bottom: 20px;">Sign up to see photos and videos from your friends.</p>
 
@@ -163,11 +136,9 @@
                 <select id="dob-day" style="flex: 1; padding: 8px; background: #121212; color: #fff; border: 0.5px solid #363636; border-radius: 4px;"></select>
                 <select id="dob-year" style="flex: 1; padding: 8px; background: #121212; color: #fff; border: 0.5px solid #363636; border-radius: 4px;"></select>
             </div>
-            <p style="font-size: 11px; color: #8e8e8e; margin-top: 10px;">This won't be part of your public profile.</p>
         </div>
 
         <button onclick="handleSignup()" style="margin-top: 20px;">Sign up</button>
-
         <div style="margin-top: 20px; text-align: center; font-size: 14px; color: #fff;">
             Have an account? <span onclick="closeSignup()" style="color: #0095f6; font-weight: bold; cursor: pointer;">Log in</span>
         </div>
