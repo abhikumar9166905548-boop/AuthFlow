@@ -196,3 +196,45 @@ async function loadProfilePosts(userId) {
         console.error("Error loading posts:", err);
     }
 }
+
+// --- 8. Upload Reel/Post Logic ---
+async function uploadMyReel() {
+    const fileInput = document.getElementById('reelVideo');
+    const file = fileInput.files[0];
+
+    if (!file) return;
+
+    // Loading indicator (optional alert)
+    alert("Uploading shuru ho rahi hai... Please wait.");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    // Yahan hum user ka ID bhej rahe hain (Jo login ke waqt humein mila tha)
+    // Note: Iske liye humein userId ko global variable mein save karna hoga ya localStorage se lena hoga.
+    // Abhi ke liye hum login session handle karne ke liye simple approach rakhte hain.
+
+    try {
+        const res = await fetch(`${API_URL}/upload`, {
+            method: "POST",
+            body: formData, // File upload ke liye headers mein 'Content-Type' nahi dete, browser khud handle karta hai
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("Upload Successful! 🔥");
+            // Upload ke baad profile refresh karo taaki nayi post dikhe
+            showProfile(); 
+            // Agar aapke paas logged-in user ID save hai to niche wala function call karein:
+            // loadProfilePosts(currentUserId); 
+        } else {
+            alert("Upload Failed: " + (data.message || "Something went wrong"));
+        }
+    } catch (err) {
+        console.error("Upload Error:", err);
+        alert("Server error during upload.");
+    } finally {
+        // Input ko khali karo taaki dubara wahi file select ho sake
+        fileInput.value = "";
+    }
+}
