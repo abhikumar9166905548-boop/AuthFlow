@@ -86,7 +86,6 @@ function showSearch() {
     
     document.getElementById('searchView').style.display = 'block';
 
-    // Search mein header ki zaroorat nahi hoti
     const header = document.getElementById("mainHeader");
     if (header) header.style.display = "none";
 }
@@ -100,7 +99,6 @@ function showReels() {
     const header = document.getElementById("mainHeader");
     if (header) header.style.display = "none";
 
-    // Pehli video play karo
     const vid = document.querySelector('#reelsView video');
     if (vid) vid.play();
 }
@@ -139,4 +137,42 @@ function openSignup() {
 function closeSignup() { 
     const modal = document.getElementById("signupModal");
     if(modal) modal.style.display = "none"; 
+}
+
+// --- 6. Signup Logic ---
+async function handleSignup() {
+    const email = document.getElementById("signup-email").value;
+    const fullName = document.getElementById("signup-fullname").value;
+    const username = document.getElementById("signup-username").value;
+    const password = document.getElementById("signup-password").value;
+    
+    // Birthday values collect karna
+    const day = document.getElementById("dob-day").value;
+    const month = document.getElementById("dob-month").value;
+    const year = document.getElementById("dob-year").value;
+    const birthday = `${year}-${month}-${day}`;
+
+    if (!email || !username || !password) {
+        return alert("Please fill all required fields!");
+    }
+
+    try {
+        const res = await fetch(`${API_URL}/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, fullName, username, password, birthday })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert("Account created successfully! Ab login karein. 🎉");
+            closeSignup();
+        } else {
+            alert("Signup Failed: " + (data.message || "Unknown error"));
+        }
+    } catch (err) {
+        console.error("Signup Error:", err);
+        alert("Server error. Try again later.");
+    }
 }
