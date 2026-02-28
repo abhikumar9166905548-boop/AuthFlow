@@ -13,20 +13,19 @@ window.onload = () => {
     if(yearSelect) for (let i = 2024; i >= 1950; i--) yearSelect.innerHTML += `<option value="${i}">${i}</option>`;
 };
 
-// --- 2. Login Logic (Fixed & Secure) ---
+// --- 2. Login Logic ---
 async function handleLogin() {
     const emailField = document.getElementById("login-email");
     const passwordField = document.getElementById("login-password");
 
     if (!emailField || !passwordField) {
-        return alert("Login fields nahi mile! HTML mein IDs check karein.");
+        return alert("Login fields nahi mile!");
     }
 
     const email = emailField.value;
     const password = passwordField.value;
 
     try {
-        // API Call
         const res = await fetch(`${API_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -35,96 +34,98 @@ async function handleLogin() {
 
         if (res.ok) {
             alert("Login Successful! 🔥");
-            
-            // Header ko hide karna
-            const header = document.getElementById("mainHeader");
-            if (header) header.style.display = "none";
-
-            // Screens switch karna
-            const authDiv = document.getElementById("auth");
-            const appDiv = document.getElementById("app");
-            
-            if (authDiv) authDiv.style.display = "none";
-            if (appDiv) appDiv.style.display = "block";
-            
+            document.getElementById("auth").style.display = "none";
+            document.getElementById("mainHeader").style.display = "none";
+            document.getElementById("app").style.display = "block";
         } else {
-            alert("Login Failed! Email ya Password galat hai.");
+            alert("Login Failed! Check credentials.");
         }
     } catch (err) {
         console.error("Login Error:", err);
-        alert("Server se connect nahi ho pa raha. Check karein ki Render server 'Live' hai ya nahi.");
+        alert("Server connection failed!");
     }
 }
 
-// --- 3. Navigation (Home vs Reels switch) ---
-function showReels() {
-    const reelsView = document.getElementById('reelsView');
-    const reelsContainer = document.getElementById('reelsContainer');
+// --- 3. Navigation Functions (Teeno Screens ke liye) ---
+
+// HOME SCREEN DIKHAO
+function showHome() {
+    document.getElementById('reelsView').style.display = 'none';
+    document.getElementById('profileView').style.display = 'none';
+    document.getElementById('reelsContainer').style.display = 'block';
+    
     const storyContainer = document.querySelector('.story-container');
+    if (storyContainer) storyContainer.style.display = 'flex';
+    
+    // Header Reset
+    const header = document.getElementById("mainHeader");
+    if (header) {
+        header.style.display = "block";
+        header.innerText = "Rollera";
+    }
+    
+    // Stop Videos
+    document.querySelectorAll('video').forEach(v => v.pause());
+}
 
-    if (reelsView) reelsView.style.display = 'block';
-    if (reelsContainer) reelsContainer.style.display = 'none';
+// REELS SCREEN DIKHAO
+function showReels() {
+    document.getElementById('reelsContainer').style.display = 'none';
+    document.getElementById('profileView').style.display = 'none';
+    
+    const storyContainer = document.querySelector('.story-container');
     if (storyContainer) storyContainer.style.display = 'none';
+    
+    document.getElementById('reelsView').style.display = 'block';
+    
+    // Header Chupao (Reels full screen hoti hain)
+    const header = document.getElementById("mainHeader");
+    if (header) header.style.display = "none";
 
-    // Pehla video play karein
+    // Play first video
     const vid = document.querySelector('#reelsView video');
     if (vid) vid.play();
 }
 
-function showHome() {
-    const reelsView = document.getElementById('reelsView');
-    const reelsContainer = document.getElementById('reelsContainer');
-    const storyContainer = document.querySelector('.story-container');
-
-    if (reelsView) reelsView.style.display = 'none';
-    if (reelsContainer) reelsContainer.style.display = 'block';
-    if (storyContainer) storyContainer.style.display = 'flex';
-
-    // Saare videos pause karein
-    document.querySelectorAll('video').forEach(v => v.pause());
-}
-
-// --- 4. Like System (Instagram Style) ---
-function toggleLike(element) {
-    if (!element) return;
-    
-    if (element.classList.contains('fa-regular')) {
-        // Like karna
-        element.classList.replace('fa-regular', 'fa-solid');
-        element.style.color = "red";
-    } else {
-        // Unlike karna
-        element.classList.replace('fa-solid', 'fa-regular');
-        element.style.color = "white";
-    }
-}
-
-// --- 5. Signup Modal Helpers ---
-function openSignup() { 
-    const modal = document.getElementById("signupModal");
-    if(modal) modal.style.display = "flex"; 
-}
-
-function closeSignup() { 
-    const modal = document.getElementById("signupModal");
-    if(modal) modal.style.display = "none"; 
-}
-
-// --- 6. PROFILE NAVIGATION ---
+// PROFILE SCREEN DIKHAO
 function showProfile() {
-    // Sab kuch chupao
-    if(document.getElementById('reelsView')) document.getElementById('reelsView').style.display = 'none';
-    if(document.getElementById('reelsContainer')) document.getElementById('reelsContainer').style.display = 'none';
-    if(document.querySelector('.story-container')) document.querySelector('.story-container').style.display = 'none';
+    document.getElementById('reelsView').style.display = 'none';
+    document.getElementById('reelsContainer').style.display = 'none';
     
-    // Profile dikhao
-    const profileView = document.getElementById('profileView');
-    if(profileView) profileView.style.display = 'block';
+    const storyContainer = document.querySelector('.story-container');
+    if (storyContainer) storyContainer.style.display = 'none';
+    
+    document.getElementById('profileView').style.display = 'block';
 
-    // Header ko wapas dikhana hai toh:
+    // Header Title
     const header = document.getElementById("mainHeader");
     if (header) {
         header.style.display = "block";
         header.innerText = "Profile";
     }
+    
+    // Stop Videos
+    document.querySelectorAll('video').forEach(v => v.pause());
+}
+
+// --- 4. Like System ---
+function toggleLike(element) {
+    if (!element) return;
+    if (element.classList.contains('fa-regular')) {
+        element.classList.replace('fa-regular', 'fa-solid');
+        element.style.color = "red";
+    } else {
+        element.classList.replace('fa-solid', 'fa-regular');
+        element.style.color = "white";
+    }
+}
+
+// --- 5. Extra Helpers ---
+function openSignup() { 
+    const modal = document.getElementById("signupModal");
+    if(modal) modal.style.display = "flex"; 
+}
+function closeSignup() { 
+    const modal = document.getElementById("signupModal");
+    if(modal) modal.style.display = "none"; 
 }
