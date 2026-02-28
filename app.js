@@ -79,3 +79,36 @@ async function loadFeed() {
     const container = document.getElementById("reelsContainer");
     // Future mein yahan reels backend se load hongi
 }
+// --- 4. LIKE SYSTEM LOGIC ---
+function toggleLike(element) {
+    const heartIcon = element;
+    const likeCountElement = heartIcon.parentElement.nextElementSibling.querySelector('b');
+    let currentLikes = parseInt(likeCountElement.innerText);
+
+    // Check if already liked
+    if (heartIcon.classList.contains('fa-regular')) {
+        // LIKE KARNA
+        heartIcon.classList.remove('fa-regular');
+        heartIcon.classList.add('fa-solid');
+        heartIcon.style.color = "red";
+        likeCountElement.innerText = (currentLikes + 1) + " likes";
+        
+        // Chhota sa animation effect
+        heartIcon.style.transform = "scale(1.3)";
+        setTimeout(() => heartIcon.style.transform = "scale(1)", 200);
+    } else {
+        // UNLIKE KARNA
+        heartIcon.classList.remove('fa-solid');
+        heartIcon.classList.add('fa-regular');
+        heartIcon.style.color = "white";
+        likeCountElement.innerText = (currentLikes - 1) + " likes";
+    }
+}
+
+// --- 5. IMAGE ERROR HANDLER (Professional Touch) ---
+// Agar koi image load nahi hui toh ye default image laga dega
+document.addEventListener('error', function (e) {
+    if (e.target.tagName.toLowerCase() === 'img') {
+        e.target.src = "https://via.placeholder.com/500x600?text=Rollera+Image";
+    }
+}, true);
