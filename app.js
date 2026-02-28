@@ -1,4 +1,4 @@
-const API_URL = "https://rollera.onrender.com"; // Is URL ko Render se match karein
+const API_URL = "https://rollera.onrender.com"; 
 
 function openSignup() { document.getElementById("signupModal").style.display = "flex"; }
 function closeSignup() { document.getElementById("signupModal").style.display = "none"; }
@@ -18,10 +18,10 @@ async function handleLogin() {
     } else { alert("Login Failed!"); }
 }
 
-async function sendOtpLogic() {
+function sendOtpLogic() {
     document.getElementById("otpSection").style.display = "block";
     document.getElementById("sendOtpBtn").style.display = "none";
-    alert("OTP sent for testing!");
+    alert("OTP sent! (Use 123456)");
 }
 
 async function verifyAndSignup() {
@@ -41,7 +41,10 @@ async function verifyAndSignup() {
     });
 
     if (res.ok) {
-        alert("Account Created! 🎉");
-        closeSignup();
-    } else { alert("Signup failed, check console."); }
+        alert("Account Created! 🎉 Ab login karein.");
+        location.reload();
+    } else {
+        const err = await res.json();
+        alert("Signup failed: " + err.message);
+    }
 }
