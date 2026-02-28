@@ -2,55 +2,86 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Rollera • Final Boss</title>
+<title>Reelora • Final Boss</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-    /* Aapka bataya hua Sexy Design */
+    /* CSS: Reelora Theme */
     body{margin:0;background:#000;color:#fff;font-family:system-ui; overflow-x: hidden;}
-    header{padding:14px;text-align:center;background:linear-gradient(90deg,#ff0050,#7f00ff); position: sticky; top:0; z-index: 100;}
-    input,button{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:none; box-sizing: border-box;}
-    input{background:#111;color:#fff; border: 1px solid #333;}
-    button{background:#ff0050;color:#fff;font-weight:700; cursor: pointer; transition: 0.3s;}
-    button:hover{opacity: 0.8;}
+    header{padding:25px; text-align:center; background:linear-gradient(90deg,#ff0050,#7f00ff); font-size: 24px; font-weight: bold;}
     
     #auth, #app {padding: 16px;}
+    h3 {margin-bottom: 20px; font-size: 22px;}
+
+    input {
+        width: 100%; padding: 15px; margin-top: 10px; 
+        border-radius: 8px; border: none; background: #111; 
+        color: #fff; box-sizing: border-box; font-size: 16px;
+    }
     
+    button {
+        width: 100%; padding: 15px; margin-top: 15px; 
+        border-radius: 8px; border: none; background: #ff0050; 
+        color: #fff; font-weight: bold; font-size: 16px; cursor: pointer;
+    }
+
     /* SIGNUP MODAL BOX */
     .modal-overlay {
         display: none; position: fixed; top: 0; left: 0; 
-        width: 100%; height: 100%; background: rgba(0,0,0,0.9); 
+        width: 100%; height: 100%; background: rgba(0,0,0,0.95); 
         z-index: 1000; align-items: center; justify-content: center;
     }
     .modal-content {
-        background: #111; width: 90%; max-width: 400px; 
-        padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center;
+        background: #000; width: 90%; max-width: 400px; 
+        padding: 30px; border-radius: 15px; border: 1px solid #333; 
+        text-align: center; box-shadow: 0 0 20px rgba(255, 0, 80, 0.3);
     }
     
-    /* REELS DESIGN */
-    .reel{height:100vh; position:relative; scroll-snap-align: start; background: #000;}
-    video{width:100%;height:100%;object-fit:cover}
-    .caption{position:absolute;left:12px;bottom:140px}
-    .actions{position:absolute;right:12px;bottom:140px}
-    nav{position:fixed;bottom:0;width:100%;display:flex;background:#111; border-top: 1px solid #333;}
-    nav button{flex:1;background:none;color:#fff}
-    .box{background:#111;padding:12px;border-radius:12px;margin-top:12px; border: 1px solid #222;}
+    .close-btn { color: #888; float: right; font-size: 24px; cursor: pointer; margin-top: -15px;}
+    
+    #otpSection { margin-top: 20px; padding: 15px; background: #1a1a1a; border-radius: 10px; }
 </style>
 </head>
 
 <body>
 
-<header><h2>🔥 Rollera</h2></header>
+<header>🔥 Reelora</header>
 
 <div id="auth">
-    <div class="box">
-        <h3>Login / Welcome Back</h3>
-        <input id="login-email" placeholder="Email">
-        <input id="login-password" type="password" placeholder="Password">
-        <button onclick="handleLogin()">Login</button>
-        <button onclick="openSignup()" style="background:#333; margin-top:10px;">Create New Account</button>
-    </div>
+    <h3>Login / Signup</h3>
+    <input id="login-email" placeholder="Email">
+    <input id="login-password" type="password" placeholder="Password">
+    <button onclick="handleLogin()">Login</button>
+    <button onclick="openSignup()" style="background: #ff0050;">Signup</button>
+    <button style="background: transparent; border: 1px solid #333; margin-top: 10px;">Forgot Password</button>
 </div>
 
 <div id="signupModal" class="modal-overlay">
     <div class="modal-content">
-        <h2 style="color: #ff
+        <span class="close-btn" onclick="closeSignup()">&times;</span>
+        <h2 style="color: #ff0050; margin-bottom: 5px;">Create Account</h2>
+        <p style="color: #888; font-size: 14px; margin-bottom: 20px;">Detail bhariye aur shuru kijiye</p>
+        
+        <input id="signup-name" type="text" placeholder="Full Name">
+        <input id="signup-age" type="number" placeholder="Age">
+        <input id="signup-mobile" type="tel" placeholder="Mobile Number">
+        <input id="signup-email" type="email" placeholder="Gmail ID">
+        <input id="signup-password" type="password" placeholder="Set Password">
+        
+        <div id="otpSection" style="display:none;">
+            <p style="color: #ff0050; font-size: 12px; margin-bottom: 10px;">Check Mobile: Use OTP 123456</p>
+            <input id="otpInput" type="number" placeholder="Enter 6-digit OTP">
+            <button onclick="verifyAndSignup()" style="background: #28a745; margin-top: 10px;">Verify & Register</button>
+        </div>
+        
+        <button id="sendOtpBtn" onclick="sendOtpLogic()">Send OTP</button>
+    </div>
+</div>
+
+<div id="app" style="display:none;">
+    <h2 style="text-align: center; color: #ff0050;">Welcome to Reelora Feed</h2>
+    <button onclick="localStorage.clear(); location.reload()" style="background: #333;">Logout</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
