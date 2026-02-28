@@ -1,4 +1,4 @@
-const API_URL = "https://rollera.onrender.com";
+const API_URL = "https://rollera.onrender.com"
 // 1. SIGNUP FUNCTION
 async function handleSignup() {
 const email = document.getElementById('email').value;
