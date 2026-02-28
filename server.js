@@ -8,15 +8,20 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Frontend files ke liye
-app.use(express.static(path.join(__dirname, './')));
+// --- FRONTEND FIX: Ise dhyan se dekhiye ---
+// Ye line aapki index.html ko browser mein dikhayegi
+app.use(express.static(__dirname));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected Successfully! ✅"))
   .catch(err => console.log("DB Connection Error: ", err));
 
-// User Schema (Name, Age, Email, Mobile, Password)
+// User Schema
 const userSchema = new mongoose.Schema({
     name: String,
     age: Number,
@@ -26,45 +31,36 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// 1. OTP Route (Testing OTP: 123456)
+// OTP Route
 app.post('/send-otp', (req, res) => {
-    console.log("OTP Request received for mobile:", req.body.mobile);
     res.status(200).json({ message: "OTP Sent (Use 123456)" });
 });
 
-// 2. Verify + Signup Route
+// Verify + Signup Route
 app.post('/verify-signup', async (req, res) => {
     try {
         const { name, age, email, mobile, password, otp } = req.body;
-        
-        if (otp !== "123456") {
-            return res.status(400).json({ message: "Galat OTP daala hai!" });
-        }
+        if (otp !== "123456") return res.status(400).json({ message: "Galat OTP!" });
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ name, age, email, mobile, password: hashedPassword });
         await newUser.save();
-        
         res.status(201).json({ message: "Account Ban Gaya! 🎉" });
     } catch (err) {
         res.status(500).json({ message: "Signup Fail: " + err.message });
     }
 });
 
-// 3. Login Route
+// Login Route
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "User nahi mila!" });
-
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Galat Password!" });
-
-        res.json({ message: "Login Successful!", token: "dummy-token-123" });
-    } catch (err) {
-        res.status(500).json({ message: "Server error" });
-    }
+        res.json({ message: "Login Successful!", token: "dummy-token" });
+    } catch (err) { res.status(500).json({ message: "Server error" }); }
 });
 
 const PORT = process.env.PORT || 10000;
