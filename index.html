@@ -2,252 +2,55 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rollera</title>
-
+<title>Rollera • Final Boss</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{
-  margin:0;
-  font-family:Segoe UI, sans-serif;
-  background:#0f0f0f;
-  color:white;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  height:100vh;
-}
-
-.container{
-  width:360px;
-  background:#1a1a1a;
-  padding:30px;
-  border-radius:15px;
-  box-shadow:0 0 25px rgba(255,0,80,0.2);
-}
-
-h1{
-  text-align:center;
-  color:#ff0050;
-}
-
-input{
-  width:100%;
-  padding:12px;
-  margin-bottom:12px;
-  border:none;
-  border-radius:8px;
-  background:#2a2a2a;
-  color:white;
-  outline:none;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-  margin-bottom:10px;
-}
-
-.primary{
-  background:#ff0050;
-  color:white;
-}
-
-.secondary{
-  background:#333;
-  color:white;
-}
-
-.success{
-  background:#28a745;
-  color:white;
-}
-
-button:hover{
-  opacity:0.9;
-}
-
-.link{
-  text-align:center;
-  font-size:13px;
-  color:#aaa;
-  cursor:pointer;
-}
-
-#signupSection,
-#otpSection,
-#app{
-  display:none;
-}
-
-nav{
-  text-align:center;
-  padding:15px;
-  border-bottom:1px solid #333;
-}
+    /* Aapka bataya hua Sexy Design */
+    body{margin:0;background:#000;color:#fff;font-family:system-ui; overflow-x: hidden;}
+    header{padding:14px;text-align:center;background:linear-gradient(90deg,#ff0050,#7f00ff); position: sticky; top:0; z-index: 100;}
+    input,button{width:100%;padding:12px;margin-top:8px;border-radius:10px;border:none; box-sizing: border-box;}
+    input{background:#111;color:#fff; border: 1px solid #333;}
+    button{background:#ff0050;color:#fff;font-weight:700; cursor: pointer; transition: 0.3s;}
+    button:hover{opacity: 0.8;}
+    
+    #auth, #app {padding: 16px;}
+    
+    /* SIGNUP MODAL BOX */
+    .modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; 
+        width: 100%; height: 100%; background: rgba(0,0,0,0.9); 
+        z-index: 1000; align-items: center; justify-content: center;
+    }
+    .modal-content {
+        background: #111; width: 90%; max-width: 400px; 
+        padding: 25px; border-radius: 20px; border: 1px solid #333; text-align: center;
+    }
+    
+    /* REELS DESIGN */
+    .reel{height:100vh; position:relative; scroll-snap-align: start; background: #000;}
+    video{width:100%;height:100%;object-fit:cover}
+    .caption{position:absolute;left:12px;bottom:140px}
+    .actions{position:absolute;right:12px;bottom:140px}
+    nav{position:fixed;bottom:0;width:100%;display:flex;background:#111; border-top: 1px solid #333;}
+    nav button{flex:1;background:none;color:#fff}
+    .box{background:#111;padding:12px;border-radius:12px;margin-top:12px; border: 1px solid #222;}
 </style>
 </head>
 
 <body>
 
-<div class="container" id="authContainer">
+<header><h2>🔥 Rollera</h2></header>
 
-<h1>Rollera</h1>
-
-<!-- LOGIN SECTION -->
-<div id="loginSection">
-<input id="loginEmail" type="email" placeholder="Email">
-<input id="loginPassword" type="password" placeholder="Password">
-
-<button class="primary" onclick="handleLogin()">Login</button>
-<button class="secondary" onclick="showSignup()">Create Account</button>
-
-<p class="link">Secure Login System 🔐</p>
+<div id="auth">
+    <div class="box">
+        <h3>Login / Welcome Back</h3>
+        <input id="login-email" placeholder="Email">
+        <input id="login-password" type="password" placeholder="Password">
+        <button onclick="handleLogin()">Login</button>
+        <button onclick="openSignup()" style="background:#333; margin-top:10px;">Create New Account</button>
+    </div>
 </div>
 
-<!-- SIGNUP SECTION -->
-<div class="input-group">
-    <input id="signup-name" type="text" placeholder="Full Name">
-    <input id="signup-email" type="email" placeholder="Gmail ID">
-    <input id="signup-mobile" type="tel" placeholder="Mobile Number">
-    <input id="signup-password" type="password" placeholder="Set Password">
-<button class="primary" onclick="sendOTP()">Send OTP</button>
-
-<div id="otpSection">
-<input id="otpInput" type="text" maxlength="6"
-placeholder="Enter 6-digit OTP"
-style="text-align:center;letter-spacing:5px;">
-
-<button class="success" onclick="verifySignup()">Verify & Register</button>
-</div>
-
-<button class="secondary" onclick="showLogin()">Back to Login</button>
-</div>
-
-</div>
-
-<!-- APP SECTION -->
-<div id="app">
-<nav>
-<h2 style="color:#ff0050;">Welcome to Rollera Feed 🔥</h2>
-<button onclick="logout()" style="background:#ff0050;padding:8px 15px;border:none;border-radius:5px;color:white;">Logout</button>
-</nav>
-
-<div style="padding:20px;text-align:center;">
-<p>You are successfully logged in 🎉</p>
-</div>
-</div>
-
-<script>
-
-const API_URL = "http://localhost:5000/api";
-
-/* Toggle Sections */
-function showSignup(){
-  loginSection.style.display="none";
-  signupSection.style.display="block";
-}
-
-function showLogin(){
-  signupSection.style.display="none";
-  otpSection.style.display="none";
-  loginSection.style.display="block";
-}
-
-/* LOGIN */
-async function handleLogin(){
-  const email = loginEmail.value.trim();
-  const password = loginPassword.value.trim();
-
-  if(!email || !password){
-    alert("All fields required");
-    return;
-  }
-
-  const res = await fetch(`${API_URL}/login`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({email,password})
-  });
-
-  const data = await res.json();
-
-  if(res.ok){
-    localStorage.setItem("token",data.accessToken);
-    authContainer.style.display="none";
-    app.style.display="block";
-  }else{
-    alert(data.message);
-  }
-}
-
-/* SEND OTP */
-async function sendOTP(){
-  const mobile = signupMobile.value.trim();
-
-  if(!mobile){
-    alert("Enter mobile number");
-    return;
-  }
-
-  const res = await fetch(`${API_URL}/send-otp`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({mobile})
-  });
-
-  if(res.ok){
-    otpSection.style.display="block";
-    alert("OTP sent (check backend console)");
-  }
-}
-
-/* VERIFY SIGNUP */
-async function verifySignup(){
-  const payload = {
-    name: signupName.value,
-    email: signupEmail.value,
-    mobile: signupMobile.value,
-    password: signupPassword.value,
-    otp: otpInput.value
-  };
-
-  const res = await fetch(`${API_URL}/verify-signup`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(payload)
-  });
-
-  const data = await res.json();
-
-  if(res.ok){
-    alert("Account Created Successfully 🎉");
-    showLogin();
-  }else{
-    alert(data.message);
-  }
-}
-
-/* Logout */
-function logout(){
-  localStorage.removeItem("token");
-  app.style.display="none";
-  authContainer.style.display="block";
-}
-
-/* Auto Login Check */
-window.onload = function(){
-  const token = localStorage.getItem("token");
-  if(token){
-    authContainer.style.display="none";
-    app.style.display="block";
-  }
-};
-
-</script>
-
-</body>
-</html>
+<div id="signupModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 style="color: #ff
