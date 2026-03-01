@@ -1,4 +1,109 @@
-/* --- 1. Profile Header & Stats (Followers/Following) --- */
+/* --- 1. COMMENT SHEET (Instagram Style Bottom Sheet) --- */
+.comment-sheet {
+    position: fixed;
+    bottom: -100%; /* Shuru mein niche chupaa rahega */
+    left: 0;
+    width: 100%;
+    height: 70vh;
+    background: #262626;
+    border-radius: 15px 15px 0 0;
+    z-index: 2005;
+    transition: bottom 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.comment-sheet.active {
+    bottom: 0; /* JS se 'active' class aane par slide up hoga */
+}
+
+.sheet-header {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 0.5px solid #3d3d3d;
+    position: relative;
+}
+
+.drag-handle {
+    width: 40px;
+    height: 4px;
+    background: #555;
+    border-radius: 2px;
+    margin: 0 auto 10px;
+}
+
+.sheet-header i {
+    position: absolute;
+    right: 15px;
+    top: 20px;
+    cursor: pointer;
+}
+
+.comment-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.comment-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.comment-item img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.comment-input-area {
+    padding: 15px;
+    border-top: 0.5px solid #3d3d3d;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #262626;
+}
+
+.user-mini-pfp {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+#newCommentInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: white;
+    outline: none;
+    margin: 0;
+}
+
+#postCommentBtn {
+    width: auto;
+    background: transparent;
+    color: #0095f6;
+    margin: 0;
+    padding: 0;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sheet-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 2004;
+}
+
+/* --- 2. PROFILE HEADER & STATS --- */
 .profile-stats-container {
     display: flex;
     justify-content: space-around;
@@ -37,14 +142,14 @@
 }
 
 .edit-btn:active, .follow-btn:active {
-    opacity: 0.7; /* Click karne par effect */
+    opacity: 0.7;
 }
 
 .follow-btn {
-    background: #0095f6; /* Instagram Blue */
+    background: #0095f6;
 }
 
-/* --- 2. Profile Grid: 3x3 Square Photos --- */
+/* --- 3. PROFILE GRID (3x3 Square Photos) --- */
 #userPostGrid {
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
@@ -54,24 +159,23 @@
 
 #userPostGrid img {
     width: 100%;
-    aspect-ratio: 1 / 1; /* Photo ko hamesha square rakhega */
+    aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
-/* --- 3. Reels View: Full Screen Snap Effect --- */
+/* --- 4. REELS VIEW (Full Screen Snap) --- */
 #reelsView {
-    display: none; /* JS isse show karega */
+    display: none; 
     scroll-snap-type: y mandatory;
     overflow-y: scroll;
     height: 100vh;
     width: 100%;
     background: #000;
-    scrollbar-width: none; /* Firefox ke liye */
-    -ms-overflow-style: none; /* IE ke liye */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch; 
 }
 
-/* Chrome/Safari se scrollbar hatane ke liye */
 #reelsView::-webkit-scrollbar {
     display: none;
 }
@@ -88,10 +192,10 @@
 .reel-video-container video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Video poori screen cover karegi */
+    object-fit: cover;
 }
 
-/* --- 4. Reels Icons Sidebar --- */
+/* --- 5. REELS SIDEBAR & ANIMATIONS --- */
 .reel-sidebar {
     position: absolute;
     right: 15px;
@@ -116,7 +220,6 @@
     margin-top: 5px;
 }
 
-/* --- 5. Double Tap Heart Animation --- */
 .heart-animation {
     position: absolute;
     top: 50%;
@@ -129,7 +232,6 @@
     z-index: 15;
 }
 
-/* Animation trigger karne ke liye is class ko JS se toggle kar sakte ho */
 .heart-pop {
     animation: heartPop 0.8s ease-out;
 }
