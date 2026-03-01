@@ -10,10 +10,9 @@ const app = express();
 // --- 1. MIDDLEWARES ---
 app.use(express.json());
 app.use(cors());
-app.use(express.static(__dirname)); // Static files serve karne ke liye
+app.use(express.static(__dirname)); 
 
 // --- 2. MONGODB CONNECTION ---
-// Make sure aapke .env file mein MONGO_URI sahi hai
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Rollera DB Connected! ✅"))
   .catch(err => console.log("DB Connection Error: ", err));
@@ -30,20 +29,37 @@ const User = mongoose.model('User', userSchema);
 
 // --- 4. ROUTES ---
 
-// Health Check (Render ko jagaaye rakhne ke liye)
+// Health Check
 app.get('/status', (req, res) => res.send("Rollera Server is Running... 🚀"));
 
-// OTP Route (Temporary logic)
+// OTP Route (Temporary)
 app.post('/send-otp', (req, res) => {
     res.status(200).json({ message: "OTP Sent (Use 123456)" });
+});
+
+// --- NEW: Search Route ---
+app.get('/api/search', async (req, res) => {
+    try {
+        const query = req.query.q;
+        if (!query) return res.json([]);
+        
+        const users = await User.find({
+            $or: [
+                { username: { $regex: query, $options: 'i' } },
+                { fullName: { $regex: query, $options: 'i' } }
+            ]
+        }).limit(10).select("-password"); // Password security ke liye hide rakha hai
+
+        res.json(users);
+    } catch (err) {
+        res.status(500).json({ message: "Search failed" });
+    }
 });
 
 // Signup Route
 app.post('/signup', async (req, res) => {
     try {
         const { email, fullName, username, password, birthday } = req.body;
-        
-        // Check if user exists
         const existingUser = await User.findOne({ $or: [{ email }, { username }] });
         if (existingUser) return res.status(400).json({ message: "Email ya Username pehle se hai!" });
 
@@ -63,7 +79,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
-// Login Route (Sahi Response format ke saath)
+// Login Route
 app.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -74,7 +90,6 @@ app.post('/login', async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Galat Password" });
         
-        // Frontend ko user data bhejna zaroori hai
         res.json({ 
             message: "Success", 
             user: { 
@@ -90,13 +105,13 @@ app.post('/login', async (req, res) => {
 });
 
 // --- 5. SERVE FRONTEND ---
-// Ye line tabhi kaam karegi jab index.html backend folder mein ho
 app.get('*', (req, res) => {
+    // Agar request API ki hai toh use file serve mat karo
     if (req.path.startsWith('/api') || req.path === '/login' || req.path === '/signup') return;
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- 6. SERVER START (RENDER OPTIMIZED) ---
+// --- 6. SERVER START ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Rollera Server live on port ${PORT} 🚀`);
