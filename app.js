@@ -1,6 +1,6 @@
 // --- Global Variables ---
 let currentUserId = null; 
-const API_URL = "https://rollera.onrender.com"; // Fixed: Duplicate hata di
+const API_URL = "https://rollera.onrender.com"; 
 
 // --- 1. Birthday Dropdowns ---
 window.onload = () => {
@@ -23,7 +23,7 @@ async function handleLogin() {
     const loginBtn = document.querySelector("#auth button"); 
 
     if (!emailField || !passwordField) return alert("HTML elements missing!");
-    if (!emailField.value || !passwordField.value) return alert("Email aur password daalo!");
+    if (!emailField.value || !passwordField.value) return alert("Bhai, email aur password toh daalo!");
 
     loginBtn.innerText = "Connecting to Server..."; 
     loginBtn.disabled = true;
@@ -56,7 +56,7 @@ async function handleLogin() {
             loadProfilePosts(currentUserId); 
             loadAllPosts(); 
         } else {
-            alert("Login Failed: " + (data.message || "Invalid credentials"));
+            alert("Login Failed: " + (data.message || "Check credentials."));
         }
     } catch (err) {
         console.error("Login Error:", err);
@@ -83,11 +83,8 @@ function hideAllSections() {
 
 function showHome() {
     hideAllSections();
-    const home = document.getElementById('homeView');
-    const container = document.getElementById('reelsContainer');
-    if(home) home.style.display = 'block';
-    if(container) container.style.display = 'block';
-    
+    document.getElementById('homeView').style.display = 'block';
+    document.getElementById('reelsContainer').style.display = 'block';
     const storyContainer = document.querySelector('.story-container');
     if (storyContainer) storyContainer.style.display = 'flex';
     
@@ -100,7 +97,48 @@ function showHome() {
     }
 }
 
-// --- 4. Content Loading (Reels & Posts) ---
+function showProfile() {
+    hideAllSections();
+    document.getElementById('profileView').style.display = 'block';
+    const header = document.getElementById("mainHeader");
+    if (header) {
+        header.style.display = "block";
+        header.innerText = "Profile";
+    }
+    if(currentUserId) loadProfilePosts(currentUserId);
+}
+
+function showSearch() {
+    hideAllSections();
+    document.getElementById('searchView').style.display = 'block';
+}
+
+// --- 4. Content Loading (REFINED) ---
+async function loadProfilePosts(userId) {
+    const postGrid = document.getElementById("userPostGrid");
+    const postCountEl = document.getElementById("post-count"); 
+
+    if (!postGrid) return;
+
+    try {
+        const res = await fetch(`${API_URL}/posts/user/${userId}`);
+        const posts = await res.json();
+        
+        if(postCountEl) postCountEl.innerText = posts.length;
+
+        postGrid.innerHTML = posts.length ? "" : "<p style='grid-column:1/4; text-align:center; color:#999; margin-top:20px;'>No posts yet</p>";
+        
+        posts.forEach(post => {
+            const img = document.createElement("img");
+            img.src = post.url; 
+            img.style.cssText = "width:100%; aspect-ratio:1/1; object-fit:cover; cursor:pointer;";
+            postGrid.appendChild(img);
+        });
+    } catch (err) { 
+        console.error("Profile Load Error:", err); 
+    }
+}
+
 async function showReels() {
     hideAllSections(); 
     const reelsView = document.getElementById("reelsView");
@@ -114,16 +152,9 @@ async function showReels() {
         const reels = await res.json();
         reelsView.innerHTML = ""; 
 
-        if(!reels || reels.length === 0) {
-            reelsView.innerHTML = "<p style='text-align:center; color:white; margin-top:50px;'>No reels found.</p>";
-            return;
-        }
-
         reels.forEach(reel => {
             const reelContainer = document.createElement("div");
             reelContainer.className = "reel-video-container";
-            reelContainer.style.cssText = "height: 100vh; scroll-snap-align: start; position: relative; background: #000;";
-
             reelContainer.innerHTML = `
                 <video src="${reel.videoUrl}" loop muted playsinline 
                        style="height: 100%; width: 100%; object-fit: cover;"
@@ -141,9 +172,42 @@ async function showReels() {
         if(firstVideo) firstVideo.play();
 
     } catch (err) {
-        reelsView.innerHTML = "<p style='text-align:center; color:white; margin-top:50px;'>Server Error. Reels not loaded.</p>";
+        reelsView.innerHTML = "<p style='text-align:center; color:white; margin-top:50px;'>Server Error.</p>";
     }
 }
 
-// ... rest of utility functions (handleSignup, uploadMyReel, etc.)
-// Note: handleSignup, loadProfilePosts, loadAllPosts remain the same but ensure API_URL usage is consistent.
+// --- 5. Utility Functions ---
+function togglePlayPause(video) {
+    if (video.paused) video.play();
+    else video.pause();
+}
+
+async function handleSignup() {
+    const email = document.getElementById("signup-email").value;
+    const fullName = document.getElementById("signup-fullname").value;
+    const username = document.getElementById("signup-username").value;
+    const password = document.getElementById("signup-password").value;
+    const birthday = `${document.getElementById("dob-year").value}-${document.getElementById("dob-month").value}-${document.getElementById("dob-day").value}`;
+
+    try {
+        const res = await fetch(`${API_URL}/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, fullName, username, password, birthday })
+        });
+        if (res.ok) {
+            alert("Account Ban Gaya! 🎉 Ab login karein.");
+            closeSignup();
+        } else {
+            const data = await res.json();
+            alert("Signup Fail: " + data.message);
+        }
+    } catch (err) { alert("Server error."); }
+}
+
+function handleLogout() {
+    if (confirm("Log out karein?")) location.reload();
+}
+
+function openSignup() { document.getElementById("signupModal").style.display = "flex"; }
+function closeSignup() { document.getElementById("signupModal").style.display = "none"; }
