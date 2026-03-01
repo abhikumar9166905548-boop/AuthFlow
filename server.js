@@ -4,13 +4,14 @@ const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path = require('path');
 const multer = require('multer');
-const fs = require('fs'); // fs import kiya folder check ke liye
+const fs = require('fs'); 
 require('dotenv').config();
 
 const app = express();
 
 // --- 1. UPLOADS FOLDER SETUP (Render Error Fix) ---
 const uploadDir = path.join(__dirname, 'uploads');
+// Agar folder nahi hai tabhi banaye, varna ignore kare (EEXIST fix)
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
     console.log("Uploads folder created! 📁");
@@ -20,11 +21,22 @@ if (!fs.existsSync(uploadDir)) {
 app.use(express.json());
 app.use(cors());
 app.use(express.static(__dirname)); 
-app.use('/uploads', express.static(uploadDir)); // Uploaded files access karne ke liye
+app.use('/uploads', express.static(uploadDir)); 
 
-// --- 3. MULTER CONFIGURATION ---
+// --- 3. MULTER CONFIGURATION (Smart Way) ---
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // File kahan save hogi
+    },
+    filename: function (req, file, cb) {
+        // Unique filename: fieldname + timestamp + extension
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
 const upload = multer({ 
-    dest: 'uploads/', 
+    storage: storage,
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
