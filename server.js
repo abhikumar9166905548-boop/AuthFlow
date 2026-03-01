@@ -16,14 +16,16 @@ try {
     if (fs.existsSync(uploadDir)) {
         const stats = fs.statSync(uploadDir);
         if (!stats.isDirectory()) {
-            // Agar 'uploads' naam ki FILE hai toh use delete karke FOLDER banao
+            // Agar 'uploads' naam ki FILE pehle se hai, toh use delete karke FOLDER banao
             fs.unlinkSync(uploadDir);
             fs.mkdirSync(uploadDir, { recursive: true });
-            console.log("Purani file hatayi aur 'uploads' folder banaya! 📁");
+            console.log("Purani 'uploads' file hatayi aur folder banaya! 📁");
+        } else {
+            console.log("'uploads' folder pehle se mojud hai. ✅");
         }
     } else {
         fs.mkdirSync(uploadDir, { recursive: true });
-        console.log("Uploads folder created! 📁");
+        console.log("'uploads' folder naya banaya gaya! 📁");
     }
 } catch (err) {
     console.error("Folder setup error:", err);
@@ -39,9 +41,10 @@ app.use(express.static(path.join(__dirname)));
 // --- 3. MULTER CONFIGURATION ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, uploadDir); // Path object use karein
+        cb(null, uploadDir); // Path variable use karein taaki galti na ho
     },
     filename: function (req, file, cb) {
+        // Unique filename logic
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
@@ -49,7 +52,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit for videos/photos
 });
 
 // --- 4. MONGODB CONNECTION ---
@@ -161,7 +164,8 @@ app.post('/login', async (req, res) => {
 // --- 7. SERVE FRONTEND ---
 app.get('*', (req, res) => {
     // API calls ko index.html par redirect mat hone dena
-    if (req.path.startsWith('/api') || req.path.startsWith('/login') || req.path.startsWith('/signup') || req.path.startsWith('/status')) {
+    const apiPaths = ['/api', '/login', '/signup', '/status', '/uploads'];
+    if (apiPaths.some(p => req.path.startsWith(p))) {
         return;
     }
     res.sendFile(path.join(__dirname, 'index.html'));
