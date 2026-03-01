@@ -3,30 +3,37 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const cors = require('cors');
 const path = require('path');
-const multer = require('multer'); // 1. Multer Import kiya
+const multer = require('multer');
+const fs = require('fs'); // fs import kiya folder check ke liye
 require('dotenv').config();
 
 const app = express();
 
-// --- 1. MIDDLEWARES ---
+// --- 1. UPLOADS FOLDER SETUP (Render Error Fix) ---
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log("Uploads folder created! 📁");
+}
+
+// --- 2. MIDDLEWARES ---
 app.use(express.json());
 app.use(cors());
 app.use(express.static(__dirname)); 
-app.use('/uploads', express.static('uploads')); // Uploaded files ko access karne ke liye
+app.use('/uploads', express.static(uploadDir)); // Uploaded files access karne ke liye
 
-// --- 2. MULTER CONFIGURATION ---
-// Ye folder server par hona chahiye, multer ise use karega
+// --- 3. MULTER CONFIGURATION ---
 const upload = multer({ 
     dest: 'uploads/', 
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 
-// --- 3. MONGODB CONNECTION ---
+// --- 4. MONGODB CONNECTION ---
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("Rollera DB Connected! ✅"))
   .catch(err => console.log("DB Connection Error: ", err));
 
-// --- 4. SCHEMAS ---
+// --- 5. SCHEMAS ---
 const userSchema = new mongoose.Schema({
     fullName: String,
     username: { type: String, unique: true, required: true },
@@ -36,7 +43,6 @@ const userSchema = new mongoose.Schema({
 });
 const User = mongoose.model('User', userSchema);
 
-// Post Schema (Uploads save karne ke liye)
 const postSchema = new mongoose.Schema({
     userId: String,
     url: String,
@@ -45,19 +51,18 @@ const postSchema = new mongoose.Schema({
 });
 const Post = mongoose.model('Post', postSchema);
 
-// --- 5. ROUTES ---
+// --- 6. ROUTES ---
 
 // Health Check
 app.get('/status', (req, res) => res.send("Rollera Server is Running... 🚀"));
 
-// NEW: Upload Route
+// Upload Route
 app.post('/api/upload', upload.single('file'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "File nahi mili" });
 
         const { userId, caption } = req.body;
         
-        // Filhal local path save kar rahe hain (Production mein Cloudinary use karna chahiye)
         const newPost = new Post({
             userId,
             caption,
@@ -129,13 +134,14 @@ app.post('/login', async (req, res) => {
     }
 });
 
-// --- 6. SERVE FRONTEND ---
+// --- 7. SERVE FRONTEND ---
 app.get('*', (req, res) => {
-    if (req.path.startsWith('/api') || req.path === '/login' || req.path === '/signup') return;
+    const apiRoutes = ['/api', '/login', '/signup', '/status'];
+    if (apiRoutes.some(route => req.path.startsWith(route))) return;
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- 7. SERVER START ---
+// --- 8. SERVER START ---
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`Rollera Server live on port ${PORT} 🚀`);
