@@ -55,7 +55,7 @@ async function handleLogin() {
             }
 
             loadProfilePosts(currentUserId); 
-            showHome(); // Changed to showHome to initialize feed
+            showHome(); 
         } else {
             alert("Login Failed: " + (data.message || "Check credentials."));
         }
@@ -80,7 +80,7 @@ function hideAllSections() {
     if (storyContainer) storyContainer.style.display = 'none';
 
     document.querySelectorAll('video').forEach(v => v.pause());
-    closeComments(); // Close comment sheet when switching tabs
+    closeComments(); 
 }
 
 function showHome() {
@@ -94,7 +94,6 @@ function showHome() {
         header.style.display = "block";
         header.innerText = "Rollera";
     }
-    // Load home feed here if needed
 }
 
 function showProfile() {
@@ -160,7 +159,6 @@ function openComments(postId) {
     activePostId = postId;
     document.getElementById("commentSheet").classList.add("active");
     document.getElementById("sheetOverlay").style.display = "block";
-    // Future: Load comments from API here
 }
 
 function closeComments() {
@@ -176,7 +174,6 @@ async function postComment() {
     if(!commentText) return;
 
     const list = document.getElementById("commentList");
-    // Clear the "No comments yet" text if it's there
     if(list.querySelector('p')) list.innerHTML = '';
 
     const newComment = document.createElement("div");
@@ -192,7 +189,7 @@ async function postComment() {
     input.value = "";
 }
 
-// --- 5. Upload Feature ---
+// --- 5. Upload Feature (Fixed Logic) ---
 function openUpload() {
     document.getElementById("uploadModal").style.display = "flex";
 }
@@ -204,15 +201,21 @@ function closeUpload() {
 async function startUpload() {
     const fileInput = document.getElementById("fileInput");
     const caption = document.getElementById("uploadCaption").value;
+    const btn = event.target;
     
     if (!fileInput.files[0]) return alert("Pehle file select karo bhai!");
 
+    const file = fileInput.files[0];
+    // Optional: 10MB limit check client-side
+    if (file.size > 10 * 1024 * 1024) {
+        return alert("Bhai, file bahut badi hai! 10MB se kam ki file try karein.");
+    }
+
     const formData = new FormData();
-    formData.append("file", fileInput.files[0]);
+    formData.append("file", file);
     formData.append("userId", currentUserId);
     formData.append("caption", caption);
 
-    const btn = event.target;
     btn.innerText = "Uploading...";
     btn.disabled = true;
 
@@ -222,16 +225,18 @@ async function startUpload() {
             body: formData 
         });
 
+        const data = await res.json(); 
+
         if (res.ok) {
             alert("Post shared successfully! 🚀");
             closeUpload();
             location.reload(); 
         } else {
-            alert("Upload fail ho gaya.");
+            alert("Upload fail: " + (data.error || "Server issue"));
         }
     } catch (err) {
-        console.error(err);
-        alert("Server error during upload.");
+        console.error("Upload Error:", err);
+        alert("Network Error: Check if server is sleeping or file is too large.");
     } finally {
         btn.innerText = "Share";
         btn.disabled = false;
