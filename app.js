@@ -189,19 +189,19 @@ async function postComment() {
     input.value = "";
 }
 
-// --- 5. Upload Feature (Optimized) ---
-function openUpload() {
-    document.getElementById("uploadModal").style.display = "flex";
-}
-
-function closeUpload() {
-    document.getElementById("uploadModal").style.display = "none";
-}
-
+// --- 5. Updated Upload Feature ---
 async function startUpload() {
     const fileInput = document.getElementById("fileInput");
     const captionInput = document.getElementById("uploadCaption");
-    const btn = event.target; // Upload button reference
+    
+    // Sabse safe tarika button dhundne ka
+    const allButtons = document.querySelectorAll("#uploadModal button");
+    let uploadBtn = null;
+    allButtons.forEach(btn => {
+        if(btn.innerText.includes("Share") || btn.innerText.includes("Uploading")) {
+            uploadBtn = btn;
+        }
+    });
 
     // 1. Check if file is selected
     if (!fileInput.files[0]) {
@@ -211,46 +211,55 @@ async function startUpload() {
 
     const file = fileInput.files[0];
 
-    // 2. MERGED LOGIC: File Size Check (10MB Limit)
+    // 2. File Size Check (10MB Limit for Render Free Tier)
     if (file.size > 10 * 1024 * 1024) { 
-        alert("Bhai, file bahut badi hai! 10MB se kam ki file upload karo.");
+        alert("Bhai, file bahut badi hai! 10MB se kam ki file upload karo (Render Free limit).");
         return;
     }
 
-    // 3. Prepare Data for Server
+    // 3. Prepare Data
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("userId", currentUserId);
+    formData.append("userId", currentUserId || "guest");
     formData.append("caption", captionInput.value);
 
-    // 4. UI Feedback
-    btn.innerText = "Uploading...";
-    btn.disabled = true;
+    // 4. UI Feedback: Button Disable karo
+    if (uploadBtn) {
+        uploadBtn.innerText = "Uploading...";
+        uploadBtn.disabled = true;
+    }
 
     try {
+        console.log("Uploading to:", `${API_URL}/api/upload`);
+        
         const res = await fetch(`${API_URL}/api/upload`, {
             method: "POST",
             body: formData 
+            // Note: FormData ke saath Content-Type header nahi lagate, browser khud kar leta hai
         });
 
+        // Response check karein
         const data = await res.json(); 
 
         if (res.ok) {
             alert("Post shared successfully! 🚀");
             closeUpload();
+            // Naye post dikhane ke liye page reload
             location.reload(); 
         } else {
             alert("Upload fail: " + (data.error || "Server issue"));
         }
     } catch (err) {
-        console.error("Upload Error:", err);
-        alert("Network Error: Check if server is sleeping or file is too large.");
+        console.error("Detailed Upload Error:", err);
+        alert("Network Error: Server connect nahi ho pa raha. Check karo ki Render par server 'Live' hai ya nahi.");
     } finally {
-        btn.innerText = "Share";
-        btn.disabled = false;
+        // 5. Button vapas normal karo
+        if (uploadBtn) {
+            uploadBtn.innerText = "Share";
+            uploadBtn.disabled = false;
+        }
     }
 }
-
 // --- 6. Content Loading ---
 async function showReels() {
     hideAllSections(); 
