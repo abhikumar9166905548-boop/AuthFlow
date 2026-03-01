@@ -1,3 +1,4 @@
+/* Profile Grid: Bilkul Square Photos */
 #userPostGrid {
     display: grid; 
     grid-template-columns: repeat(3, 1fr); 
@@ -5,14 +6,41 @@
     margin-top: 20px;
 }
 
-/* Reels View Snap Effect */
+#userPostGrid img {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Photo ko hamesha square rakhega */
+    object-fit: cover;
+}
+
+/* Reels View: Smooth Snap Effect */
 #reelsView {
-    scroll-snap-type: y mandatory; /* Vertical scroll snap */
+    display: none; /* JS isse show karega */
+    scroll-snap-type: y mandatory;
     overflow-y: scroll;
     height: 100vh;
+    width: 100%;
+    background: #000;
+    scrollbar-width: none; /* Firefox ke liye scrollbar hide */
+    -ms-overflow-style: none; /* IE ke liye */
+    -webkit-overflow-scrolling: touch; /* iOS par smooth scrolling */
+}
+
+/* Chrome aur Safari se scrollbar hatane ke liye */
+#reelsView::-webkit-scrollbar {
+    display: none;
 }
 
 .reel-video-container {
-    scroll-snap-align: start; /* Har video start par chipak jayegi */
+    width: 100%;
+    height: 100vh; 
+    scroll-snap-align: start;
     scroll-snap-stop: always;
+    position: relative;
+    background: #000;
+}
+
+.reel-video-container video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Video poori screen cover karegi */
 }
