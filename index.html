@@ -20,24 +20,10 @@
         .story-wrapper span { font-size: 11px; display: block; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 0.5px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
         .bottom-nav i { font-size: 22px; cursor: pointer; color: #fff; }
-        .comment-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 70vh; background: #262626; border-radius: 15px 15px 0 0; z-index: 2005; transition: bottom 0.3s ease-out; display: flex; flex-direction: column; }
-        .comment-sheet.active { bottom: 0; }
-        .sheet-header { padding: 15px; text-align: center; border-bottom: 0.5px solid #3d3d3d; position: relative; }
-        .drag-handle { width: 40px; height: 4px; background: #555; border-radius: 2px; margin: 0 auto 10px; }
-        .sheet-header i { position: absolute; right: 15px; top: 20px; cursor: pointer; }
-        .comment-list { flex: 1; overflow-y: auto; padding: 15px; }
-        .comment-input-area { padding: 15px; border-top: 0.5px solid #3d3d3d; display: flex; align-items: center; gap: 10px; background: #262626; }
-        .user-mini-pfp { width: 35px; height: 35px; border-radius: 50%; }
-        #newCommentInput { flex: 1; background: transparent; border: none; color: white; outline: none; margin: 0; }
-        #postCommentBtn { width: auto; background: transparent; color: #0095f6; margin: 0; padding: 0; }
-        .sheet-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2004; }
         .modal-overlay {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;}
-        #uploadModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1001; justify-content:center; align-items:center; }
+        #uploadModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2001; justify-content:center; align-items:center; }
         .profile-stats-container { display: flex; justify-content: space-around; padding: 20px 10px; border-bottom: 1px solid #333; text-align: center; }
         .stat-item b { display: block; font-size: 18px; color: #fff; }
-        .profile-actions { display: flex; gap: 10px; padding: 10px; }
-        .follow-btn { flex: 1; background: #0095f6; color: white; border: none; padding: 8px; border-radius: 5px; font-weight: bold; }
-        .edit-btn { flex: 1; background: #333; color: white; border: none; padding: 8px; border-radius: 5px; font-weight: bold; }
         #userPostGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin-top: 10px; }
         #userPostGrid img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
     </style>
@@ -71,7 +57,7 @@
         <div style="padding: 10px;">
             <div style="background: #262626; border-radius: 10px; padding: 8px 15px; display: flex; align-items: center; gap: 10px;">
                 <i class="fa-solid fa-magnifying-glass" style="color: #8e8e8e; font-size: 14px;"></i>
-                <input type="text" id="search-input" placeholder="Search" oninput="handleSearch()" style="background: transparent; border: none; margin: 0; padding: 0; width: 100%; outline: none; font-size: 16px; color: white;">
+                <input type="text" id="search-input" placeholder="Search" style="background: transparent; border: none; margin: 0; padding: 0; width: 100%; outline: none; font-size: 16px; color: white;">
             </div>
         </div>
         <div id="searchResults"></div>
@@ -90,10 +76,6 @@
             <div class="stat-item"><b>250</b><span>Followers</span></div>
             <div class="stat-item"><b>180</b><span>Following</span></div>
         </div>
-        <div class="profile-actions">
-            <button class="follow-btn">Follow</button>
-            <button class="edit-btn">Message</button>
-        </div>
         <div id="userPostGrid"></div>
     </div>
 
@@ -101,7 +83,7 @@
         <i class="fa-solid fa-house" onclick="showHome()"></i>
         <i class="fa-solid fa-magnifying-glass" onclick="showSearch()"></i>
         <i class="fa-regular fa-square-plus" onclick="openUpload()"></i>
-        <i class="fa-solid fa-clapperboard" onclick="showReels()"></i>
+        <i class="fa-solid fa-clapperboard"></i>
         <i class="fa-regular fa-circle-user" onclick="showProfile()"></i>
     </div>
 </div>
@@ -118,22 +100,33 @@
     </div>
 </div>
 
-<div id="signupModal" class="modal-overlay"> 
-    <div style="background: #000; width: 90%; max-width: 400px; padding: 25px; border-radius: 12px; border: 1px solid #262626; position: relative;">
-        <i class="fa-solid fa-xmark" onclick="closeSignup()" style="position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer;"></i>
-        <h1 style="text-align: center; font-family: 'Brush Script MT', cursive; font-size: 40px;">Rollera</h1>
-        <input id="signup-email" placeholder="Email">
-        <input id="signup-fullname" placeholder="Full Name">
-        <input id="signup-username" placeholder="Username">
-        <input id="signup-password" type="password" placeholder="Password">
-        <button onclick="handleSignup()">Sign up</button>
-    </div>
-</div>
-
 <script src="app.js"></script>
 
 <script>
-// --- YE RAHA NAYA UPLOAD LOGIC ---
+// --- NAVIGATION FUNCTIONS ---
+function showHome() {
+    document.getElementById('homeView').style.display = 'block';
+    document.getElementById('searchView').style.display = 'none';
+    document.getElementById('profileView').style.display = 'none';
+}
+function showSearch() {
+    document.getElementById('homeView').style.display = 'none';
+    document.getElementById('searchView').style.display = 'block';
+    document.getElementById('profileView').style.display = 'none';
+}
+function openUpload() {
+    document.getElementById('uploadModal').style.display = 'flex';
+}
+function closeUpload() {
+    document.getElementById('uploadModal').style.display = 'none';
+}
+function showProfile() {
+    document.getElementById('homeView').style.display = 'none';
+    document.getElementById('searchView').style.display = 'none';
+    document.getElementById('profileView').style.display = 'block';
+}
+
+// --- UPLOAD LOGIC ---
 const API_URL = "https://rollera.onrender.com";
 
 async function uploadPhoto(file, userId, caption) {
@@ -151,6 +144,7 @@ async function uploadPhoto(file, userId, caption) {
         const result = await response.json();
         if(response.ok) {
             alert("Photo Upload Ho Gayi! 🔥");
+            closeUpload();
             location.reload();
         } else {
             alert("Upload Fail: " + (result.error || "Server Error"));
@@ -161,21 +155,22 @@ async function uploadPhoto(file, userId, caption) {
     }
 }
 
-// Ye function app.js ke startUpload ko override karega
 window.startUpload = async function() {
     const file = document.getElementById('fileInput').files[0];
     const caption = document.getElementById('uploadCaption').value;
-    const user = JSON.parse(localStorage.getItem('user')); // Check karein aapka user data kahan hai
+    const user = JSON.parse(localStorage.getItem('user')); 
 
     if (!file) return alert("File select karein!");
     if (!user) return alert("Pehle Login karein!");
 
-    // Button disable karein taaki user baar baar click na kare
     const btn = event.target;
     btn.innerText = "Uploading...";
     btn.disabled = true;
 
     await uploadPhoto(file, user._id || user.username, caption);
+    
+    btn.innerText = "Share";
+    btn.disabled = false;
 }
 </script>
 </body>
