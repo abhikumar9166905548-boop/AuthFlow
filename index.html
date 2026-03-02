@@ -8,40 +8,19 @@
     <style>
         body{margin:0;background:#000;color:#fff;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow-x: hidden;}
         #mainHeader {padding:15px; text-align:center; background: #000; border-bottom: 0.5px solid #262626; font-size:24px; font-weight:bold; position: sticky; top: 0; z-index: 100;}
-        
         #auth {padding: 20px; max-width: 400px; margin: auto;}
         input {width:100%; padding:12px; margin-top:10px; border-radius:5px; border: 0.5px solid #363636; background:#121212; color:#fff; box-sizing:border-box;}
         button {width:100%; padding:10px; margin-top:15px; border-radius:8px; border:none; background:#0095f6; color:#fff; font-weight:bold; cursor:pointer;}
-
-        /* App Layout Styles */
         #app { background: #000; min-height: 100vh; padding-bottom: 70px; }
-        
-        /* Stories */
         .story-container { display: flex; overflow-x: auto; padding: 15px 10px; border-bottom: 0.5px solid #262626; gap: 12px; scrollbar-width: none; }
         .story-container::-webkit-scrollbar { display: none; }
         .story-wrapper { text-align: center; width: 75px; flex-shrink: 0; }
         .story-ring { width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); padding: 2px; margin: auto; }
         .story-ring img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid black; object-fit: cover; }
         .story-wrapper span { font-size: 11px; display: block; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-        /* Bottom Navbar */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #000; border-top: 0.5px solid #262626; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; }
         .bottom-nav i { font-size: 22px; cursor: pointer; color: #fff; }
-
-        /* --- COMMENT SHEET STYLES --- */
-        .comment-sheet {
-            position: fixed;
-            bottom: -100%;
-            left: 0;
-            width: 100%;
-            height: 70vh;
-            background: #262626;
-            border-radius: 15px 15px 0 0;
-            z-index: 2005;
-            transition: bottom 0.3s ease-out;
-            display: flex;
-            flex-direction: column;
-        }
+        .comment-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; height: 70vh; background: #262626; border-radius: 15px 15px 0 0; z-index: 2005; transition: bottom 0.3s ease-out; display: flex; flex-direction: column; }
         .comment-sheet.active { bottom: 0; }
         .sheet-header { padding: 15px; text-align: center; border-bottom: 0.5px solid #3d3d3d; position: relative; }
         .drag-handle { width: 40px; height: 4px; background: #555; border-radius: 2px; margin: 0 auto 10px; }
@@ -52,12 +31,8 @@
         #newCommentInput { flex: 1; background: transparent; border: none; color: white; outline: none; margin: 0; }
         #postCommentBtn { width: auto; background: transparent; color: #0095f6; margin: 0; padding: 0; }
         .sheet-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2004; }
-
-        /* --- OTHER MODALS --- */
         .modal-overlay {display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; align-items:center; justify-content:center;}
         #uploadModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1001; justify-content:center; align-items:center; }
-        
-        /* Profile & Reels */
         .profile-stats-container { display: flex; justify-content: space-around; padding: 20px 10px; border-bottom: 1px solid #333; text-align: center; }
         .stat-item b { display: block; font-size: 18px; color: #fff; }
         .profile-actions { display: flex; gap: 10px; padding: 10px; }
@@ -102,8 +77,6 @@
         <div id="searchResults"></div>
     </div>
 
-    <div id="reelsView" style="display:none; height: 100vh; background: #000; overflow-y: scroll; scrollbar-width: none; position: fixed; top: 0; left: 0; width: 100%; z-index: 999;"></div>
-
     <div id="profileView" style="display:none; padding-top: 10px;">
         <div style="padding: 10px 20px; display: flex; align-items: center; gap: 20px;">
             <img src="https://i.pravatar.cc/150?u=me" style="width: 77px; height: 77px; border-radius: 50%;">
@@ -123,23 +96,6 @@
         </div>
         <div id="userPostGrid"></div>
     </div>
-
-    <div id="commentSheet" class="comment-sheet">
-        <div class="sheet-header">
-            <div class="drag-handle"></div>
-            <span>Comments</span>
-            <i class="fa-solid fa-xmark" onclick="closeComments()"></i>
-        </div>
-        <div id="commentList" class="comment-list">
-            <p style="text-align:center; color:#8e8e8e; margin-top:20px;">No comments yet.</p>
-        </div>
-        <div class="comment-input-area">
-            <img src="https://i.pravatar.cc/150?u=me" class="user-mini-pfp">
-            <input type="text" id="newCommentInput" placeholder="Add a comment...">
-            <button onclick="postComment()" id="postCommentBtn">Post</button>
-        </div>
-    </div>
-    <div id="sheetOverlay" class="sheet-overlay" onclick="closeComments()"></div>
 
     <div class="bottom-nav">
         <i class="fa-solid fa-house" onclick="showHome()"></i>
@@ -170,16 +126,57 @@
         <input id="signup-fullname" placeholder="Full Name">
         <input id="signup-username" placeholder="Username">
         <input id="signup-password" type="password" placeholder="Password">
-        <div style="margin-top: 20px;">
-            <label style="font-size: 12px; color: #8e8e8e;">Birthday</label>
-            <div style="display: flex; gap: 10px; margin-top:5px;">
-                <select id="dob-month"></select><select id="dob-day"></select><select id="dob-year"></select>
-            </div>
-        </div>
         <button onclick="handleSignup()">Sign up</button>
     </div>
 </div>
 
 <script src="app.js"></script>
+
+<script>
+// --- YE RAHA NAYA UPLOAD LOGIC ---
+const API_URL = "https://rollera.onrender.com";
+
+async function uploadPhoto(file, userId, caption) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('userId', userId);
+    formData.append('caption', caption);
+
+    try {
+        const response = await fetch(`${API_URL}/api/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        if(response.ok) {
+            alert("Photo Upload Ho Gayi! 🔥");
+            location.reload();
+        } else {
+            alert("Upload Fail: " + (result.error || "Server Error"));
+        }
+    } catch (error) {
+        console.error("Upload Error:", error);
+        alert("Network Error: Server connect nahi ho raha.");
+    }
+}
+
+// Ye function app.js ke startUpload ko override karega
+window.startUpload = async function() {
+    const file = document.getElementById('fileInput').files[0];
+    const caption = document.getElementById('uploadCaption').value;
+    const user = JSON.parse(localStorage.getItem('user')); // Check karein aapka user data kahan hai
+
+    if (!file) return alert("File select karein!");
+    if (!user) return alert("Pehle Login karein!");
+
+    // Button disable karein taaki user baar baar click na kare
+    const btn = event.target;
+    btn.innerText = "Uploading...";
+    btn.disabled = true;
+
+    await uploadPhoto(file, user._id || user.username, caption);
+}
+</script>
 </body>
 </html>
