@@ -2,51 +2,43 @@
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Roller - Dashboard</title>
+    <title>Roller - Login</title>
     <link rel="stylesheet" href=".css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 <body>
+    <div id="character">💼</div>
 
-    <div class="dashboard-container" id="dashCard">
-        <div class="profile-header">
-            <div class="avatar">R</div>
-            <h2>Welcome, <span id="userNameDisplay">User</span>!</h2>
-            <p>Apna Swad, Apna Style Dashboard</p>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-box">
-                <h3>125K</h3>
-                <p>Followers</p>
-            </div>
-            <div class="stat-box">
-                <h3>245</h3>
-                <p>Posts</p>
-            </div>
-        </div>
-
-        <div class="menu-items">
-            <button class="menu-btn">My Videos</button>
-            <button class="menu-btn">Settings</button>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
+    <div class="login-card" id="loginCard">
+        <h2>Roller</h2>
+        <p>Apna Swad, Apna Style</p>
+        <input type="text" id="user" placeholder="Username">
+        <input type="password" id="pass" placeholder="Password">
+        <button onclick="handleLogin()">Sign In</button>
+        <p id="msg"></p>
     </div>
 
     <script>
-        // Entrance Animation for Dashboard
         window.onload = () => {
-            gsap.from("#dashCard", {
-                y: 100,
-                opacity: 0,
-                duration: 1,
-                ease: "power3.out"
-            });
+            const tl = gsap.timeline();
+            tl.from("#character", { x: -600, duration: 1 })
+              .to("#character", { y: -20, yoyo: true, repeat: 1, duration: 0.2 })
+              .to("#character", { opacity: 0, scale: 0, duration: 0.3 })
+              .to("#loginCard", { autoAlpha: 1, scale: 1, duration: 0.5, ease: "back.out(1.7)" });
         };
 
-        function logout() {
-            window.location.href = "/";
+        async function handleLogin() {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.value, password: pass.value })
+            });
+            const data = await res.json();
+            if(data.success) window.location.href = "/dashboard";
+            else {
+                msg.innerText = data.message;
+                gsap.to("#loginCard", { x: 10, duration: 0.1, yoyo: true, repeat: 5 });
+            }
         }
     </script>
 </body>
