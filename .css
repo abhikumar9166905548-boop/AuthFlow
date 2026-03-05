@@ -1,60 +1,50 @@
-body {
-    margin: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(45deg, #3498db, #8e44ad);
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-}
-
-#animation-container {
-    position: absolute;
-    font-size: 80px;
-}
-
-/* Glassmorphism Effect */
-.glass-card {
+/* Dashboard Specific Styles */
+.dashboard-container {
     background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 2.5rem;
-    border-radius: 25px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    width: 320px;
+    padding: 2rem;
+    border-radius: 30px;
+    width: 400px;
     text-align: center;
     color: white;
-    visibility: hidden; /* GSAP will show it */
 }
 
-.login-logo { font-size: 50px; margin-bottom: 10px; }
-.login-title { margin: 0; font-size: 28px; letter-spacing: 2px; }
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: #fff;
+    color: #3498db;
+    font-size: 40px;
+    font-weight: bold;
+    line-height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+}
 
-.login-btn {
+.stats-grid {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+}
+
+.stat-box h3 { margin: 0; font-size: 20px; }
+.stat-box p { margin: 0; font-size: 12px; opacity: 0.8; }
+
+.menu-btn, .logout-btn {
     width: 100%;
     padding: 12px;
-    margin: 10px 0;
+    margin: 5px 0;
     border: none;
     border-radius: 10px;
-    background: white;
-    color: #333;
-    font-weight: bold;
     cursor: pointer;
-    transition: transform 0.2s;
+    font-weight: bold;
 }
 
-.login-btn:hover { transform: scale(1.03); }
+.menu-btn { background: rgba(255,255,255,0.2); color: white; transition: 0.3s; }
+.menu-btn:hover { background: rgba(255,255,255,0.4); }
 
-.login-divider { margin: 15px 0; font-size: 12px; opacity: 0.7; }
-
-.social-btns { display: flex; justify-content: center; gap: 20px; }
-.icon-btn { 
-    background: rgba(255,255,255,0.2); 
-    border: none; 
-    font-size: 24px; 
-    padding: 10px; 
-    border-radius: 50%; 
-    cursor: pointer; 
-}
+.logout-btn { background: #e74c3c; color: white; margin-top: 15px; }
