@@ -1,198 +1,60 @@
-/* ==================== BASE STYLES ==================== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-}
-
 body {
-    background-color: #000;
-    color: #fff;
-    overflow: hidden;
-    max-width: 420px;
-    margin: 0 auto;
+    margin: 0;
     height: 100vh;
-    position: relative;
-}
-
-/* --- LOGIC: Hide all sections by default --- */
-.section, 
-.auth-modal, 
-.auth-otp-container, 
-#topHeader, 
-#bottomNav {
-    display: none;
-}
-
-/* --- LOGIC: Show only when 'active' class is present --- */
-.active {
-    display: block !important;
-}
-
-/* Login screen needs flex when active */
-.login-screen.active {
-    display: flex !important;
-}
-
-/* ==================== APP CONTAINER & FEED ==================== */
-.app-container {
-    height: 100vh;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    scrollbar-width: none;
-}
-
-.app-container::-webkit-scrollbar {
-    display: none;
-}
-
-/* ==================== LOGIN SCREEN ==================== */
-.login-screen {
-    flex-direction: column;
-    align-items: center;
+    display: flex;
     justify-content: center;
-    min-height: 100vh;
-    padding: 30px;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    position: relative;
+    align-items: center;
+    background: linear-gradient(45deg, #3498db, #8e44ad);
+    font-family: 'Segoe UI', sans-serif;
     overflow: hidden;
 }
 
-/* ... (Aapki purani animation and styles) ... */
-.login-screen::before {
-    content: '';
+#animation-container {
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,0,80,0.1) 0%, transparent 50%);
-    animation: rotate 20s linear infinite;
+    font-size: 80px;
 }
 
-@keyframes rotate {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+/* Glassmorphism Effect */
+.glass-card {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 2.5rem;
+    border-radius: 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    width: 320px;
+    text-align: center;
+    color: white;
+    visibility: hidden; /* GSAP will show it */
 }
 
-.login-logo { font-size: 60px; margin-bottom: 10px; z-index: 1; }
-.login-title {
-    font-size: 36px;
-    font-weight: 800;
-    margin-bottom: 8px;
-    background: linear-gradient(45deg, #fe2c55, #00f2ea);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    z-index: 1;
-}
+.login-logo { font-size: 50px; margin-bottom: 10px; }
+.login-title { margin: 0; font-size: 28px; letter-spacing: 2px; }
 
 .login-btn {
     width: 100%;
-    max-width: 300px;
-    padding: 14px;
-    border-radius: 25px;
+    padding: 12px;
+    margin: 10px 0;
     border: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: transform 0.2s;
-    z-index: 1;
-}
-
-.phone-btn { background: #fe2c55; color: white; }
-.email-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); }
-.facebook-btn { background: #1877f2; color: white; }
-.google-btn { background: white; color: #333; }
-
-/* ==================== AUTH MODAL ==================== */
-.auth-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: #000;
-    z-index: 1000; /* Increased z-index */
-    overflow-y: auto;
-}
-
-/* ==================== VIDEO UI ==================== */
-.video-container {
-    height: 100vh;
-    width: 100%;
-    position: relative;
-    scroll-snap-align: start;
-    background: #000;
-}
-
-.video-container video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.video-overlay {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 20px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.8));
-    padding-bottom: 100px; /* Space for nav */
-}
-
-/* Heart Animation Overlay */
-.god-heart {
-    position: fixed;
-    font-size: 80px;
-    z-index: 9999;
-    pointer-events: none;
-    animation: heartFly 0.8s forwards;
-}
-
-@keyframes heartFly { 
-    0% { transform: scale(0); opacity: 0; } 
-    50% { transform: scale(1.5) rotate(15deg); opacity: 1; } 
-    100% { transform: scale(1) translateY(-100px); opacity: 0; } 
-}
-
-/* ==================== SECTIONS ==================== */
-.profile-section, .discover-section, .inbox-section {
-    padding: 20px;
-    background: #000;
-    min-height: 100vh;
-    padding-bottom: 80px;
-    overflow-y: auto;
-}
-
-/* ==================== TOAST ==================== */
-#toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: rgba(255,255,255,0.95);
-    color: #000;
-    padding: 12px 25px;
     border-radius: 10px;
-    font-weight: 600;
-    z-index: 10000;
-    display: none;
+    background: white;
+    color: #333;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s;
 }
 
-/* ==================== NAV FIX ==================== */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 70px;
-    background: #000;
-    display: flex; /* Script will toggle display */
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid rgba(255,255,255,0.1);
-    z-index: 500;
+.login-btn:hover { transform: scale(1.03); }
+
+.login-divider { margin: 15px 0; font-size: 12px; opacity: 0.7; }
+
+.social-btns { display: flex; justify-content: center; gap: 20px; }
+.icon-btn { 
+    background: rgba(255,255,255,0.2); 
+    border: none; 
+    font-size: 24px; 
+    padding: 10px; 
+    border-radius: 50%; 
+    cursor: pointer; 
 }
