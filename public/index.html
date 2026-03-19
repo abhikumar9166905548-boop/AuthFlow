@@ -3,455 +3,339 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Auth System</title>
+  <title>Rollera</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0a0a0f;
-      --surface: #111118;
-      --border: rgba(255,255,255,0.07);
-      --accent: #7c6cfc;
-      --accent2: #c084fc;
-      --text: #f0eeff;
-      --muted: #888;
-      --error: #f87171;
-      --success: #4ade80;
-      --input-bg: rgba(255,255,255,0.04);
+      --bg: #0a0a0f; --surface: #111118; --border: rgba(255,255,255,0.07);
+      --accent: #7c6cfc; --accent2: #c084fc; --text: #f0eeff; --muted: #888;
+      --error: #f87171; --success: #4ade80; --input-bg: rgba(255,255,255,0.04);
     }
-
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* Background blobs */
-    .blobs {
-      position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    }
-    .blob {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: 0.18;
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .blobs { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.15; }
     .blob1 { width: 500px; height: 500px; background: #7c6cfc; top: -120px; left: -100px; animation: drift1 12s ease-in-out infinite; }
     .blob2 { width: 400px; height: 400px; background: #c084fc; bottom: -100px; right: -80px; animation: drift2 14s ease-in-out infinite; }
-    .blob3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 50%; transform: translate(-50%,-50%); animation: drift1 10s ease-in-out infinite reverse; }
-
-    @keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px, 40px); } }
-    @keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-30px, -30px); } }
-
-    .card-wrap {
-      position: relative; z-index: 1;
-      width: 100%; max-width: 440px;
-      padding: 16px;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 40px 36px;
-      backdrop-filter: blur(20px);
-      box-shadow: 0 32px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
-      animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1);
-    }
-    @keyframes cardIn { from { opacity:0; transform: translateY(24px) scale(0.97); } to { opacity:1; transform: translateY(0) scale(1); } }
-
-    .logo {
-      display: flex; align-items: center; gap: 10px;
-      margin-bottom: 28px;
-    }
-    .logo-icon {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 18px;
-    }
-    .logo-text {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 18px;
-      background: linear-gradient(90deg, var(--accent), var(--accent2));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-
-    h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 26px; font-weight: 700;
-      margin-bottom: 6px; line-height: 1.2;
-    }
-    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 28px; }
-
-    .tabs {
-      display: flex; background: rgba(255,255,255,0.04);
-      border-radius: 12px; padding: 4px;
-      margin-bottom: 28px; gap: 4px;
-    }
-    .tab {
-      flex: 1; padding: 9px; border: none;
-      background: transparent; color: var(--muted);
-      border-radius: 9px; cursor: pointer;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 14px; font-weight: 500;
-      transition: all 0.2s;
-    }
-    .tab.active {
-      background: var(--accent); color: #fff;
-      box-shadow: 0 4px 14px rgba(124,108,252,0.4);
-    }
-
+    @keyframes drift1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(30px,40px)} }
+    @keyframes drift2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-30px)} }
+    .app { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 16px; }
+    /* NAV */
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; margin-bottom: 16px; }
+    .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-user { display: flex; align-items: center; gap: 10px; }
+    .avatar { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; cursor: pointer; }
+    .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+    .btn-logout:hover { border-color: var(--error); color: var(--error); }
+    /* AUTH CARD */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 24px; padding: 36px; box-shadow: 0 32px 80px rgba(0,0,0,0.5); animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes cardIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .tabs { display: flex; background: rgba(255,255,255,0.04); border-radius: 12px; padding: 4px; margin-bottom: 24px; gap: 4px; }
+    .tab { flex: 1; padding: 9px; border: none; background: transparent; color: var(--muted); border-radius: 9px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+    .tab.active { background: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(124,108,252,0.4); }
     .form-panel { display: none; }
     .form-panel.active { display: block; animation: fadeUp 0.3s ease; }
-    @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:translateY(0); } }
-
-    .field { margin-bottom: 16px; }
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-
-    input {
-      width: 100%; padding: 13px 16px;
-      background: var(--input-bg); border: 1px solid var(--border);
-      border-radius: 12px; color: var(--text);
-      font-family: 'DM Sans', sans-serif; font-size: 15px;
-      outline: none; transition: all 0.2s;
-    }
-    input:focus { border-color: var(--accent); background: rgba(124,108,252,0.06); box-shadow: 0 0 0 3px rgba(124,108,252,0.12); }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+    .field { margin-bottom: 14px; }
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input { width: 100%; padding: 12px 14px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; outline: none; transition: all 0.2s; }
+    input:focus { border-color: var(--accent); background: rgba(124,108,252,0.06); }
     input::placeholder { color: #444; }
-
-    .btn {
-      width: 100%; padding: 14px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      border: none; border-radius: 12px; color: #fff;
-      font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700;
-      cursor: pointer; margin-top: 8px;
-      transition: all 0.2s; position: relative; overflow: hidden;
-      box-shadow: 0 8px 24px rgba(124,108,252,0.35);
-    }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(124,108,252,0.45); }
-    .btn:active { transform: translateY(0); }
+    .btn { width: 100%; padding: 13px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 12px; color: #fff; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 6px; transition: all 0.2s; box-shadow: 0 8px 24px rgba(124,108,252,0.35); }
+    .btn:hover { transform: translateY(-1px); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .btn.loading::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.2);
-    }
-
-    .link-row {
-      text-align: center; margin-top: 18px;
-      font-size: 13px; color: var(--muted);
-    }
-    .link-row a {
-      color: var(--accent2); text-decoration: none; font-weight: 500;
-      cursor: pointer;
-    }
-    .link-row a:hover { text-decoration: underline; }
-
-    .alert {
-      padding: 12px 16px; border-radius: 10px;
-      font-size: 13px; margin-bottom: 16px;
-      display: none; align-items: center; gap: 8px;
-    }
-    .alert.show { display: flex; }
+    .link-row { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+    .link-row a { color: var(--accent2); text-decoration: none; cursor: pointer; }
+    .alert { padding: 11px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 14px; display: none; }
+    .alert.show { display: block; }
     .alert.error { background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); color: var(--error); }
     .alert.success { background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.3); color: var(--success); }
-
-    /* Dashboard state */
-    .dashboard { display: none; }
-    .dashboard.active { display: block; animation: cardIn 0.4s ease; }
-
-    .user-avatar {
-      width: 56px; height: 56px; border-radius: 18px;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px; margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(124,108,252,0.35);
-    }
-    .welcome { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 4px; }
-    .user-email { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
-
-    .info-box {
-      background: rgba(124,108,252,0.08); border: 1px solid rgba(124,108,252,0.2);
-      border-radius: 12px; padding: 16px; margin-bottom: 20px;
-    }
-    .info-box h4 { font-size: 12px; color: var(--accent2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .info-item { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
-    .info-item span:last-child { color: var(--muted); }
-
-    .btn-outline {
-      width: 100%; padding: 12px;
-      background: transparent; border: 1px solid var(--border);
-      border-radius: 12px; color: var(--muted);
-      font-family: 'DM Sans', sans-serif; font-size: 14px;
-      cursor: pointer; transition: all 0.2s; margin-top: 8px;
-    }
-    .btn-outline:hover { border-color: var(--error); color: var(--error); background: rgba(248,113,113,0.06); }
-
-    .spinner {
-      display: inline-block; width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* FEED */
+    #feedSection { display: none; }
+    #feedSection.active { display: block; }
+    .post-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+    .post-box textarea { width: 100%; background: var(--input-bg); border: 1px solid var(--border); border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 12px 14px; resize: none; outline: none; height: 90px; transition: all 0.2s; }
+    .post-box textarea:focus { border-color: var(--accent); }
+    .post-box textarea::placeholder { color: #444; }
+    .post-btn { padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border: none; border-radius: 10px; color: #fff; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 10px; float: right; transition: all 0.2s; }
+    .post-btn:hover { transform: translateY(-1px); }
+    .clearfix::after { content: ''; display: table; clear: both; }
+    .post-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 18px; margin-bottom: 14px; animation: cardIn 0.3s ease; }
+    .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .post-avatar { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; }
+    .post-name { font-weight: 600; font-size: 14px; }
+    .post-time { color: var(--muted); font-size: 12px; }
+    .post-content { font-size: 15px; line-height: 1.6; margin-bottom: 14px; }
+    .post-actions { display: flex; gap: 12px; }
+    .action-btn { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted); padding: 6px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+    .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .action-btn.liked { background: rgba(124,108,252,0.1); border-color: var(--accent); color: var(--accent); }
+    .action-btn.delete:hover { border-color: var(--error); color: var(--error); }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .empty-feed { text-align: center; color: var(--muted); padding: 40px; font-size: 15px; }
   </style>
 </head>
 <body>
+<div class="blobs"><div class="blob blob1"></div><div class="blob blob2"></div></div>
 
-<div class="blobs">
-  <div class="blob blob1"></div>
-  <div class="blob blob2"></div>
-  <div class="blob blob3"></div>
-</div>
-
-<div class="card-wrap">
-  <div class="card" id="authCard">
-    <div class="logo">
-      <div class="logo-icon">✦</div>
-      <div class="logo-text">AuthFlow</div>
+<div class="app">
+  <!-- AUTH SECTION -->
+  <div id="authSection">
+    <div style="text-align:center;padding:40px 0 24px;">
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;background:linear-gradient(90deg,#7c6cfc,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Rollera</div>
+      <div style="color:var(--muted);font-size:14px;margin-top:4px;">Social platform</div>
     </div>
-
-    <!-- Alert box -->
-    <div class="alert" id="alertBox">
-      <span id="alertIcon">⚠️</span>
-      <span id="alertMsg"></span>
-    </div>
-
-    <!-- Tabs -->
-    <div class="tabs" id="tabBar">
-      <button class="tab active" onclick="switchTab('login')">Login</button>
-      <button class="tab" onclick="switchTab('signup')">Sign Up</button>
-    </div>
-
-    <!-- LOGIN -->
-    <div class="form-panel active" id="loginPanel">
-      <h2>Welcome back</h2>
-      <p class="subtitle">Sign in to your account</p>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="loginEmail" placeholder="you@example.com"/>
+    <div class="card">
+      <div class="alert" id="alertBox"><span id="alertMsg"></span></div>
+      <div class="tabs" id="tabBar">
+        <button class="tab active" onclick="switchTab('login')">Login</button>
+        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
       </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="loginPass" placeholder="••••••••"/>
+      <!-- LOGIN -->
+      <div class="form-panel active" id="loginPanel">
+        <h2>Welcome back</h2>
+        <p class="subtitle">Sign in to your account</p>
+        <div class="field"><label>Email</label><input type="email" id="loginEmail" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="loginPass" placeholder="••••••••"/></div>
+        <button class="btn" onclick="handleLogin()" id="loginBtn">Sign In</button>
+        <div class="link-row"><a onclick="switchTab('forgot')">Forgot password?</a></div>
       </div>
-      <button class="btn" onclick="handleLogin()" id="loginBtn">Sign In</button>
-      <div class="link-row">
-        <a onclick="switchTab('forgot')">Forgot password?</a>
+      <!-- SIGNUP -->
+      <div class="form-panel" id="signupPanel">
+        <h2>Create account</h2>
+        <p class="subtitle">Join Rollera today</p>
+        <div class="field"><label>Full Name</label><input type="text" id="signupName" placeholder="John Doe"/></div>
+        <div class="field"><label>Email</label><input type="email" id="signupEmail" placeholder="you@example.com"/></div>
+        <div class="field"><label>Password</label><input type="password" id="signupPass" placeholder="Min 6 characters"/></div>
+        <button class="btn" onclick="handleSignup()" id="signupBtn">Create Account</button>
       </div>
-    </div>
-
-    <!-- SIGNUP -->
-    <div class="form-panel" id="signupPanel">
-      <h2>Create account</h2>
-      <p class="subtitle">Join us today, it's free</p>
-      <div class="field">
-        <label>Full Name</label>
-        <input type="text" id="signupName" placeholder="John Doe"/>
-      </div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="signupEmail" placeholder="you@example.com"/>
-      </div>
-      <div class="field">
-        <label>Password</label>
-        <input type="password" id="signupPass" placeholder="Min 6 characters"/>
-      </div>
-      <button class="btn" onclick="handleSignup()" id="signupBtn">Create Account</button>
-    </div>
-
-    <!-- FORGOT PASSWORD -->
-    <div class="form-panel" id="forgotPanel">
-      <h2>Reset password</h2>
-      <p class="subtitle">Enter your email to receive a reset link</p>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="forgotEmail" placeholder="you@example.com"/>
-      </div>
-      <button class="btn" onclick="handleForgot()" id="forgotBtn">Send Reset Link</button>
-      <div class="link-row">
-        <a onclick="switchTab('login')">← Back to login</a>
+      <!-- FORGOT -->
+      <div class="form-panel" id="forgotPanel">
+        <h2>Reset password</h2>
+        <p class="subtitle">Enter your email to reset</p>
+        <div class="field"><label>Email</label><input type="email" id="forgotEmail" placeholder="you@example.com"/></div>
+        <button class="btn" onclick="handleForgot()" id="forgotBtn">Send Reset Link</button>
+        <div class="link-row"><a onclick="switchTab('login')">← Back to login</a></div>
       </div>
     </div>
   </div>
 
-  <!-- DASHBOARD (shown after login) -->
-  <div class="card" id="dashCard" style="display:none;">
-    <div class="logo">
-      <div class="logo-icon">✦</div>
-      <div class="logo-text">AuthFlow</div>
-    </div>
-    <div class="user-avatar" id="userAvatar">👤</div>
-    <div class="welcome">Hello, <span id="userName">User</span>! 👋</div>
-    <div class="user-email" id="userEmailDisplay">user@example.com</div>
+  <!-- FEED SECTION -->
+  <div id="feedSection">
+    <nav>
+      <div class="logo">Rollera</div>
+      <div class="nav-user">
+        <div class="avatar" id="navAvatar">A</div>
+        <span id="navName" style="font-size:14px;font-weight:500;"></span>
+        <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+      </div>
+    </nav>
 
-    <div class="info-box">
-      <h4>Session Info</h4>
-      <div class="info-item"><span>Status</span><span>🟢 Authenticated</span></div>
-      <div class="info-item"><span>Token</span><span id="tokenDisplay">—</span></div>
-      <div class="info-item"><span>Logged in at</span><span id="loginTime">—</span></div>
+    <!-- Create Post -->
+    <div class="post-box">
+      <textarea id="postContent" placeholder="Kya soch rahe ho? Share karo..."></textarea>
+      <div class="clearfix">
+        <button class="post-btn" onclick="handleCreatePost()" id="postBtn">Post karo ✦</button>
+      </div>
     </div>
 
-    <button class="btn-outline" onclick="handleLogout()">Sign Out</button>
+    <!-- Feed -->
+    <div id="feedList"><div class="empty-feed">Loading posts...</div></div>
   </div>
 </div>
 
 <script>
-  // ── CONFIG ───────────────────────────────────────
-  const API = 'https://rollera.onrender.com/api/auth';
+  const API = 'https://rollera.onrender.com/api';
 
-  // ── HELPERS ──────────────────────────────────────
-  function showAlert(msg, type = 'error') {
+  function showAlert(msg, type='error') {
     const box = document.getElementById('alertBox');
-    const icon = document.getElementById('alertIcon');
     const txt = document.getElementById('alertMsg');
     box.className = `alert show ${type}`;
-    icon.textContent = type === 'error' ? '⚠️' : '✅';
     txt.textContent = msg;
     setTimeout(() => box.classList.remove('show'), 4000);
   }
 
-  function setLoading(btnId, loading) {
+  function setLoading(btnId, loading, text) {
     const btn = document.getElementById(btnId);
     btn.disabled = loading;
-    if (loading) {
-      btn._orig = btn.innerHTML;
-      btn.innerHTML = `<span class="spinner"></span> Please wait...`;
-    } else {
-      btn.innerHTML = btn._orig;
-    }
+    if (loading) { btn._orig = btn.innerHTML; btn.innerHTML = `<span class="spinner"></span> Please wait...`; }
+    else btn.innerHTML = btn._orig;
   }
 
-  function saveToken(token) { localStorage.setItem('authToken', token); }
-  function getToken() { return localStorage.getItem('authToken'); }
-  function clearToken() { localStorage.removeItem('authToken'); }
-
-  // ── TAB SWITCHING ────────────────────────────────
   function switchTab(tab) {
     document.getElementById('alertBox').classList.remove('show');
-    ['login','signup','forgot'].forEach(t => {
-      document.getElementById(t + 'Panel').classList.toggle('active', t === tab);
-    });
-    const tabBar = document.querySelectorAll('.tab');
-    if (tab === 'login') { tabBar[0].classList.add('active'); tabBar[1].classList.remove('active'); }
-    else if (tab === 'signup') { tabBar[1].classList.add('active'); tabBar[0].classList.remove('active'); }
-    else { tabBar.forEach(t => t.classList.remove('active')); }
-
-    document.getElementById('tabBar').style.display = tab === 'forgot' ? 'none' : 'flex';
+    ['login','signup','forgot'].forEach(t => document.getElementById(t+'Panel').classList.toggle('active', t===tab));
+    const tabs = document.querySelectorAll('.tab');
+    if(tab==='login'){tabs[0].classList.add('active');tabs[1].classList.remove('active');}
+    else if(tab==='signup'){tabs[1].classList.add('active');tabs[0].classList.remove('active');}
+    else{tabs.forEach(t=>t.classList.remove('active'));}
+    document.getElementById('tabBar').style.display = tab==='forgot'?'none':'flex';
   }
 
-  // ── SHOW DASHBOARD ───────────────────────────────
-  function showDashboard(user, token) {
-    document.getElementById('authCard').style.display = 'none';
-    const dash = document.getElementById('dashCard');
-    dash.style.display = 'block';
-    dash.style.animation = 'cardIn 0.5s cubic-bezier(0.22,1,0.36,1)';
+  function saveToken(t){localStorage.setItem('authToken',t);}
+  function getToken(){return localStorage.getItem('authToken');}
+  function clearToken(){localStorage.removeItem('authToken');}
 
-    document.getElementById('userName').textContent = user.name || 'User';
-    document.getElementById('userEmailDisplay').textContent = user.email || '';
-    document.getElementById('userAvatar').textContent = (user.name || 'U')[0].toUpperCase();
-    document.getElementById('tokenDisplay').textContent = token.slice(0,18) + '…';
-    document.getElementById('loginTime').textContent = new Date().toLocaleTimeString();
+  function showFeed(user, token) {
+    document.getElementById('authSection').style.display = 'none';
+    document.getElementById('feedSection').classList.add('active');
+    document.getElementById('navAvatar').textContent = (user.name||'U')[0].toUpperCase();
+    document.getElementById('navName').textContent = user.name;
+    loadFeed();
   }
 
   function showAuth() {
-    document.getElementById('dashCard').style.display = 'none';
-    document.getElementById('authCard').style.display = 'block';
+    document.getElementById('feedSection').classList.remove('active');
+    document.getElementById('authSection').style.display = 'block';
     switchTab('login');
   }
 
-  // ── AUTH ACTIONS ─────────────────────────────────
+  // ── AUTH ──
   async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPass').value;
-    if (!email || !password) return showAlert('Please fill in all fields');
-
+    if(!email||!password) return showAlert('Sabhi fields bharo');
     setLoading('loginBtn', true);
     try {
-      const res = await fetch(`${API}/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
+      const res = await fetch(`${API}/auth/login`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
       const data = await res.json();
-      if (!data.success) throw new Error(data.message);
+      if(!data.success) throw new Error(data.message);
       saveToken(data.token);
-      showDashboard(data.user, data.token);
-    } catch(e) {
-      showAlert(e.message || 'Login failed');
-    } finally { setLoading('loginBtn', false); }
+      showFeed(data.user, data.token);
+    } catch(e){showAlert(e.message||'Login failed');}
+    finally{setLoading('loginBtn',false);}
   }
 
   async function handleSignup() {
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPass').value;
-    if (!name || !email || !password) return showAlert('Please fill in all fields');
-    if (password.length < 6) return showAlert('Password must be at least 6 characters');
-
-    setLoading('signupBtn', true);
+    const name=document.getElementById('signupName').value.trim();
+    const email=document.getElementById('signupEmail').value.trim();
+    const password=document.getElementById('signupPass').value;
+    if(!name||!email||!password) return showAlert('Sabhi fields bharo');
+    setLoading('signupBtn',true);
     try {
-      const res = await fetch(`${API}/signup`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        const errMsg = data.errors ? data.errors[0].msg : data.message;
-        throw new Error(errMsg);
-      }
+      const res=await fetch(`${API}/auth/signup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
+      const data=await res.json();
+      if(!data.success) throw new Error(data.errors?data.errors[0].msg:data.message);
       saveToken(data.token);
-      showDashboard(data.user, data.token);
-    } catch(e) {
-      showAlert(e.message || 'Signup failed');
-    } finally { setLoading('signupBtn', false); }
+      showFeed(data.user,data.token);
+    } catch(e){showAlert(e.message||'Signup failed');}
+    finally{setLoading('signupBtn',false);}
   }
 
   async function handleForgot() {
-    const email = document.getElementById('forgotEmail').value.trim();
-    if (!email) return showAlert('Please enter your email');
-
-    setLoading('forgotBtn', true);
+    const email=document.getElementById('forgotEmail').value.trim();
+    if(!email) return showAlert('Email daalo');
+    setLoading('forgotBtn',true);
     try {
-      const res = await fetch(`${API}/forgot-password`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.message);
-      showAlert('Reset link sent! Check your inbox ✉️', 'success');
-    } catch(e) {
-      showAlert(e.message || 'Something went wrong');
-    } finally { setLoading('forgotBtn', false); }
+      const res=await fetch(`${API}/auth/forgot-password`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+      const data=await res.json();
+      if(!data.success) throw new Error(data.message);
+      showAlert('Reset link bhej diya! Email check karo ✉️','success');
+    } catch(e){showAlert(e.message||'Error');}
+    finally{setLoading('forgotBtn',false);}
   }
 
   async function handleLogout() {
-    const token = getToken();
-    if (token) {
-      await fetch(`${API}/logout`, {
-        method: 'POST', headers: { Authorization: `Bearer ${token}` }
-      }).catch(() => {});
-    }
-    clearToken();
-    showAuth();
+    clearToken(); showAuth();
   }
 
-  // Auto-login if token exists on page load
-  (async () => {
+  // ── POSTS ──
+  async function loadFeed() {
     const token = getToken();
-    if (!token) return;
     try {
-      const res = await fetch(`${API}/me`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`${API}/posts`, {headers:{Authorization:`Bearer ${token}`}});
       const data = await res.json();
-      if (data.success) showDashboard(data.user, token);
+      renderFeed(data.posts||[]);
+    } catch(e){
+      document.getElementById('feedList').innerHTML = '<div class="empty-feed">Posts load nahi hue 😕</div>';
+    }
+  }
+
+  function renderFeed(posts) {
+    const container = document.getElementById('feedList');
+    if(!posts.length){container.innerHTML='<div class="empty-feed">Koi post nahi abhi — pehla post karo! ✦</div>';return;}
+    container.innerHTML = posts.map(p => {
+      const myId = getUserId();
+      const liked = p.likes && p.likes.includes(myId);
+      const isOwner = p.user._id === myId;
+      const time = new Date(p.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      return `
+        <div class="post-card" id="post-${p._id}">
+          <div class="post-header">
+            <div class="post-avatar">${(p.user.name||'U')[0].toUpperCase()}</div>
+            <div>
+              <div class="post-name">${p.user.name}</div>
+              <div class="post-time">${time}</div>
+            </div>
+          </div>
+          <div class="post-content">${p.content}</div>
+          <div class="post-actions">
+            <button class="action-btn ${liked?'liked':''}" onclick="handleLike('${p._id}', this)">
+              ${liked?'♥':'♡'} <span>${p.likes?p.likes.length:0}</span>
+            </button>
+            ${isOwner?`<button class="action-btn delete" onclick="handleDelete('${p._id}')">🗑 Delete</button>`:''}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function getUserId() {
+    const token = getToken();
+    if(!token) return null;
+    try { return JSON.parse(atob(token.split('.')[1])).id; } catch{return null;}
+  }
+
+  async function handleCreatePost() {
+    const content = document.getElementById('postContent').value.trim();
+    if(!content) return;
+    const token = getToken();
+    setLoading('postBtn', true);
+    try {
+      const res = await fetch(`${API}/posts`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({content})});
+      const data = await res.json();
+      if(!data.success) throw new Error(data.message);
+      document.getElementById('postContent').value = '';
+      loadFeed();
+    } catch(e){alert(e.message);}
+    finally{setLoading('postBtn',false);}
+  }
+
+  async function handleLike(postId, btn) {
+    const token = getToken();
+    try {
+      const res = await fetch(`${API}/posts/${postId}/like`,{method:'PUT',headers:{Authorization:`Bearer ${token}`}});
+      const data = await res.json();
+      if(!data.success) return;
+      btn.classList.toggle('liked', data.liked);
+      btn.innerHTML = `${data.liked?'♥':'♡'} <span>${data.likes}</span>`;
+    } catch(e){}
+  }
+
+  async function handleDelete(postId) {
+    if(!confirm('Post delete karna chahte ho?')) return;
+    const token = getToken();
+    try {
+      const res = await fetch(`${API}/posts/${postId}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+      const data = await res.json();
+      if(data.success) document.getElementById(`post-${postId}`).remove();
+    } catch(e){}
+  }
+
+  // Auto login
+  (async()=>{
+    const token=getToken();
+    if(!token) return;
+    try {
+      const res=await fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${token}`}});
+      const data=await res.json();
+      if(data.success) showFeed(data.user,token);
       else clearToken();
-    } catch { clearToken(); }
+    } catch{clearToken();}
   })();
 </script>
 </body>
 </html>
+```
