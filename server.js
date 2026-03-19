@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
-
+app.use('/api/posts', require('./routes/post.routes'));
 // Health check
 app.get('/', (req, res) => {
   res.json({ message: 'Auth API is running ✅' });
