@@ -179,3 +179,20 @@ exports.resetPassword = async (req, res, next) => {
     next(err);
   }
 };
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/users?q=search
+// @desc    Search users
+// @access  Private
+// ─────────────────────────────────────────────
+exports.searchUsers = async (req, res, next) => {
+  try {
+    const query = req.query.q;
+    if (!query) return res.status(400).json({ success: false, message: 'Query required' });
+    const users = await User.find({
+      name: { $regex: query, $options: 'i' }
+    }).select('name email').limit(10);
+    res.status(200).json({ success: true, users });
+  } catch (err) {
+    next(err);
+  }
+};

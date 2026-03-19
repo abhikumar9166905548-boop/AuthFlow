@@ -79,5 +79,5 @@ router.put(
   validate,
   resetPassword
 );
-
+router.get('/users', protect, require('../controllers/auth.controller').searchUsers);
 module.exports = router;
