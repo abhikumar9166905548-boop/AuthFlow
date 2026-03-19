@@ -5,8 +5,9 @@ exports.createPost = async (req, res, next) => {
   try {
     const post = await Post.create({
       user: req.user.id,
-      content: req.body.content,
+      content: req.body.content || '',
       image: req.body.image || null,
+      video: req.body.video || null,
     });
     await post.populate('user', 'name email');
     res.status(201).json({ success: true, post });
@@ -48,5 +49,30 @@ exports.likePost = async (req, res, next) => {
     }
     await post.save();
     res.status(200).json({ success: true, liked: !liked, likes: post.likes.length });
+  } catch (err) { next(err); }
+};
+
+// Edit post
+exports.editPost = async (req, res, next) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) return res.status(404).json({ success: false, message: 'Post not found' });
+    if (post.user.toString() !== req.user.id)
+      return res.status(403).json({ success: false, message: 'Not authorized' });
+    post.content = req.body.content || post.content;
+    post.edited = true;
+    await post.save();
+    res.status(200).json({ success: true, post });
+  } catch (err) { next(err); }
+};
+
+// Explore - trending posts
+exports.getExplore = async (req, res, next) => {
+  try {
+    const posts = await Post.find()
+      .populate('user', 'name email')
+      .sort({ 'likes': -1, createdAt: -1 })
+      .limit(20);
+    res.status(200).json({ success: true, posts });
   } catch (err) { next(err); }
 };

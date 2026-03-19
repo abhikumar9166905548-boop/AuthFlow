@@ -9,12 +9,20 @@ const postSchema = new mongoose.Schema(
     },
     content: {
       type: String,
-      required: [true, 'Post content is required'],
       maxlength: 500,
+      default: '',
     },
     image: {
       type: String,
       default: null,
+    },
+    video: {
+      type: String,
+      default: null,
+    },
+    edited: {
+      type: Boolean,
+      default: false,
     },
     likes: [
       {
