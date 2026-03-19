@@ -196,3 +196,61 @@ exports.searchUsers = async (req, res, next) => {
     next(err);
   }
 };
+// ─────────────────────────────────────────────
+// @route   PUT /api/auth/follow/:id
+// @desc    Follow / Unfollow user
+// @access  Private
+// ─────────────────────────────────────────────
+exports.followUser = async (req, res, next) => {
+  try {
+    if (req.params.id === req.user.id)
+      return res.status(400).json({ success: false, message: 'Aap khud ko follow nahi kar sakte' });
+
+    const userToFollow = await User.findById(req.params.id);
+    const currentUser = await User.findById(req.user.id);
+
+    if (!userToFollow) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const isFollowing = currentUser.following.includes(req.params.id);
+
+    if (isFollowing) {
+      // Unfollow
+      await User.findByIdAndUpdate(req.user.id, { $pull: { following: req.params.id } });
+      await User.findByIdAndUpdate(req.params.id, { $pull: { followers: req.user.id } });
+      res.status(200).json({ success: true, following: false, message: 'Unfollow ho gaya' });
+    } else {
+      // Follow
+      await User.findByIdAndUpdate(req.user.id, { $push: { following: req.params.id } });
+      await User.findByIdAndUpdate(req.params.id, { $push: { followers: req.user.id } });
+      // Notification
+      await User.findByIdAndUpdate(req.params.id, {
+        $push: {
+          notifications: {
+            type: 'follow',
+            from: req.user.id,
+            message: `${req.user.name} ne aapko follow kiya`,
+          }
+        }
+      });
+      res.status(200).json({ success: true, following: true, message: 'Follow ho gaya' });
+    }
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/notifications
+// @desc    Get notifications
+// @access  Private
+// ─────────────────────────────────────────────
+exports.getNotifications = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id)
+      .populate('notifications.from', 'name');
+    const notifications = user.notifications.sort((a, b) => b.createdAt - a.createdAt);
+    // Mark all as read
+    await User.findByIdAndUpdate(req.user.id, {
+      $set: { 'notifications.$[].read': true }
+    });
+    res.status(200).json({ success: true, notifications });
+  } catch (err) { next(err); }
+};

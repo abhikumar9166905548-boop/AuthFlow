@@ -29,6 +29,18 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+notifications: [
+  {
+    type: { type: String },
+    from: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+    message: String,
+    read: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now },
+  }
+],
     resetPasswordToken: String,
     resetPasswordExpire: Date,
   },

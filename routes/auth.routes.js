@@ -10,18 +10,19 @@ const {
   logout,
   forgotPassword,
   resetPassword,
+  searchUsers,
+  followUser,
+  getNotifications,
 } = require('../controllers/auth.controller');
 
 const { protect } = require('../middleware/auth.middleware');
 
-// Rate limiter for auth routes
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 15 * 60 * 1000,
   max: 10,
   message: { success: false, message: 'Too many requests, please try again after 15 minutes' },
 });
 
-// Validation middleware
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -30,54 +31,38 @@ const validate = (req, res, next) => {
   next();
 };
 
-// ── Routes ──────────────────────────────────────────
-
-// POST /api/auth/signup
-router.post(
-  '/signup',
-  authLimiter,
+router.post('/signup', authLimiter,
   [
     body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
     body('email').isEmail().withMessage('Enter a valid email'),
     body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   ],
-  validate,
-  signup
+  validate, signup
 );
 
-// POST /api/auth/login
-router.post(
-  '/login',
-  authLimiter,
+router.post('/login', authLimiter,
   [
     body('email').isEmail().withMessage('Enter a valid email'),
     body('password').notEmpty().withMessage('Password is required'),
   ],
-  validate,
-  login
+  validate, login
 );
 
-// GET /api/auth/me  (protected)
 router.get('/me', protect, getMe);
-
-// POST /api/auth/logout  (protected)
 router.post('/logout', protect, logout);
 
-// POST /api/auth/forgot-password
-router.post(
-  '/forgot-password',
-  authLimiter,
+router.post('/forgot-password', authLimiter,
   [body('email').isEmail().withMessage('Enter a valid email')],
-  validate,
-  forgotPassword
+  validate, forgotPassword
 );
 
-// PUT /api/auth/reset-password/:token
-router.put(
-  '/reset-password/:token',
+router.put('/reset-password/:token',
   [body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters')],
-  validate,
-  resetPassword
+  validate, resetPassword
 );
-router.get('/users', protect, require('../controllers/auth.controller').searchUsers);
+
+router.get('/users', protect, searchUsers);
+router.put('/follow/:id', protect, followUser);
+router.get('/notifications', protect, getNotifications);
+
 module.exports = router;
