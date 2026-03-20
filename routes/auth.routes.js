@@ -74,5 +74,8 @@ router.get('/posts/saved', protect, getSavedPosts);
 router.put('/block/:id', protect, blockUser);
 router.get('/suggestions', protect, require('../controllers/auth.controller').getSuggestions);
 router.put('/verify/:id', protect, require('../controllers/auth.controller').toggleVerification);
+router.post('/verify-otp', require('../controllers/auth.controller').verifyOtp);
+router.post('/resend-otp', require('../controllers/auth.controller').resendOtp);
+router.post('/google', require('../controllers/auth.controller').googleLogin);
 
 module.exports = router;

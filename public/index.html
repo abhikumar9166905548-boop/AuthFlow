@@ -307,6 +307,23 @@
         <div class="field"><label>Password</label><div class="input-wrap"><span class="input-icon">🔒</span><input type="password" id="signupPass" placeholder="Min 6 characters"/></div></div>
         <button class="btn" onclick="handleSignup()" id="signupBtn">Create Account ✦</button>
       </div>
+      <!-- OTP PANEL -->
+<div class="form-panel" id="otpPanel">
+  <h2>OTP Verify karo ✦</h2>
+  <p class="subtitle">Email pe 6 digit OTP bheja gaya hai</p>
+  <p style="font-size:13px;color:var(--accent);margin-bottom:16px;text-align:center" id="otpEmailShow"></p>
+  <div class="field">
+    <label>OTP Code</label>
+    <div class="input-wrap">
+      <span class="input-icon">🔐</span>
+      <input type="text" id="otpInput" placeholder="000000" maxlength="6" style="letter-spacing:8px;text-align:center;font-size:20px;font-weight:700"/>
+    </div>
+  </div>
+  <button class="btn" onclick="handleVerifyOtp()" id="otpBtn">Verify karo ✦</button>
+  <div class="link-row">
+    <a onclick="handleResendOtp()">OTP nahi aaya? Resend karo</a>
+  </div>
+</div>
       <div class="form-panel" id="forgotPanel">
         <h2>Reset password</h2><p class="subtitle">Email pe reset link bhejenge</p>
         <div class="field"><label>Email</label><div class="input-wrap"><span class="input-icon">📧</span><input type="email" id="forgotEmail" placeholder="you@example.com"/></div></div>
@@ -561,12 +578,12 @@ function setLoading(id,on){
 }
 function switchTab(tab){
   document.getElementById('alertBox').classList.remove('show');
-  ['login','signup','forgot'].forEach(t=>document.getElementById(t+'Panel').classList.toggle('active',t===tab));
+  ['login','signup','forgot','otp'].forEach(t=>document.getElementById(t+'Panel').classList.toggle('active',t===tab));
   const tabs=document.querySelectorAll('.tab');
   if(tab==='login'){tabs[0].classList.add('active');tabs[1].classList.remove('active')}
   else if(tab==='signup'){tabs[1].classList.add('active');tabs[0].classList.remove('active')}
   else tabs.forEach(t=>t.classList.remove('active'));
-  document.getElementById('tabBar').style.display=tab==='forgot'?'none':'flex';
+ document.getElementById('tabBar').style.display=(tab==='forgot'||tab==='otp')?'none':'flex';
 }
 function toggleTheme(){
   isDark=!isDark;document.body.classList.toggle('light',!isDark);
@@ -654,9 +671,34 @@ async function handleSignup(){
     const res=await fetch(`${API}/auth/signup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,email,password})});
     const data=await res.json();
     if(!data.success)throw new Error(data.errors?data.errors[0].msg:data.message);
-    saveToken(data.token);showApp(data.user);
+    // Show OTP panel
+    window._pendingEmail=email;
+    document.getElementById('otpEmailShow').textContent=email;
+    switchTab('otp');
   }catch(e){showAlert(e.message||'Signup failed')}
   finally{setLoading('signupBtn',false)}
+}
+
+async function handleVerifyOtp(){
+  const otp=document.getElementById('otpInput').value.trim();
+  if(!otp||otp.length!==6)return showAlert('6 digit OTP daalo');
+  setLoading('otpBtn',true);
+  try{
+    const res=await fetch(`${API}/auth/verify-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:window._pendingEmail,otp})});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.message);
+    saveToken(data.token);showApp(data.user);
+  }catch(e){showAlert(e.message||'OTP verify failed')}
+  finally{setLoading('otpBtn',false)}
+}
+
+async function handleResendOtp(){
+  try{
+    const res=await fetch(`${API}/auth/resend-otp`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:window._pendingEmail})});
+    const data=await res.json();
+    if(!data.success)throw new Error(data.message);
+    showAlert('Naya OTP bhej diya! ✉️','success');
+  }catch(e){showAlert(e.message||'Error')}
 }
 async function handleForgot(){
   const email=document.getElementById('forgotEmail').value.trim();

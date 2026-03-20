@@ -33,18 +33,106 @@ const sendTokenResponse = (user, statusCode, res, message) => {
 exports.signup = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
-
-    // Check if user already exists
     const existing = await User.findOne({ email });
-    if (existing) {
+    if (existing && existing.isVerified) {
       return res.status(400).json({ success: false, message: 'Email already registered' });
     }
 
-    const user = await User.create({ name, email, password });
-    sendTokenResponse(user, 201, res, 'Account created successfully');
-  } catch (err) {
-    next(err);
-  }
+    // Generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    let user;
+    if (existing && !existing.isVerified) {
+      // Update existing unverified user
+      existing.name = name;
+      existing.password = password;
+      existing.otp = otp;
+      existing.otpExpire = otpExpire;
+      await existing.save();
+      user = existing;
+    } else {
+      user = await User.create({ name, email, password, otp, otpExpire, isVerified: false });
+    }
+
+    // Send OTP email
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #eee;border-radius:8px;">
+        <h2 style="color:#7c6cfc;">Welcome to Rollera! 🎉</h2>
+        <p>Hi <strong>${name}</strong>,</p>
+        <p>Your verification OTP is:</p>
+        <div style="background:#f0eeff;border-radius:12px;padding:20px;text-align:center;margin:20px 0;">
+          <h1 style="color:#7c6cfc;letter-spacing:8px;font-size:36px;">${otp}</h1>
+        </div>
+        <p style="color:#888;font-size:13px;">This OTP will expire in <strong>10 minutes</strong>.</p>
+      </div>
+    `;
+
+    await sendEmail({ to: email, subject: 'Rollera - Email Verification OTP', html });
+
+    res.status(200).json({
+      success: true,
+      message: 'OTP bhej diya! Email check karo',
+      email,
+    });
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   POST /api/auth/verify-otp
+// @desc    Verify OTP
+// @access  Public
+// ─────────────────────────────────────────────
+exports.verifyOtp = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!user.otp || user.otp !== otp)
+      return res.status(400).json({ success: false, message: 'Invalid OTP' });
+    if (user.otpExpire < Date.now())
+      return res.status(400).json({ success: false, message: 'OTP expire ho gaya — dobara try karo' });
+
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpire = null;
+    await user.save();
+
+    sendTokenResponse(user, 200, res, 'Email verified! Welcome to Rollera 🎉');
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   POST /api/auth/resend-otp
+// @desc    Resend OTP
+// @access  Public
+// ─────────────────────────────────────────────
+exports.resendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+    await user.save();
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #eee;border-radius:8px;">
+        <h2 style="color:#7c6cfc;">New OTP Request</h2>
+        <p>Your new OTP is:</p>
+        <div style="background:#f0eeff;border-radius:12px;padding:20px;text-align:center;margin:20px 0;">
+          <h1 style="color:#7c6cfc;letter-spacing:8px;font-size:36px;">${otp}</h1>
+        </div>
+        <p style="color:#888;font-size:13px;">10 minutes mein expire ho jayega.</p>
+      </div>
+    `;
+
+    await sendEmail({ to: email, subject: 'Rollera - New OTP', html });
+    res.status(200).json({ success: true, message: 'Naya OTP bhej diya!' });
+  } catch (err) { next(err); }
 };
 
 // ─────────────────────────────────────────────
@@ -369,5 +457,47 @@ exports.toggleVerification = async (req, res, next) => {
       isVerifiedBadge: user.isVerifiedBadge,
       message: user.isVerifiedBadge ? 'Verification badge diya gaya ✓' : 'Badge remove ho gaya'
     });
+  } catch (err) { next(err); }
+};
+// ─────────────────────────────────────────────
+// @route   POST /api/auth/google
+// @desc    Google Sign In
+// @access  Public
+// ─────────────────────────────────────────────
+exports.googleLogin = async (req, res, next) => {
+  try {
+    const { idToken } = req.body;
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+    const ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user
+      user = await User.create({
+        name,
+        email,
+        password: Math.random().toString(36).slice(-8) + 'Aa1!',
+        profilePhoto: picture,
+        isVerified: true,
+      });
+    } else {
+      // Update profile photo if not set
+      if (!user.profilePhoto && picture) {
+        user.profilePhoto = picture;
+        await user.save();
+      }
+    }
+
+    sendTokenResponse(user, 200, res, 'Google login successful');
   } catch (err) { next(err); }
 };

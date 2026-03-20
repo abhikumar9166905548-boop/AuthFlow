@@ -7,8 +7,10 @@ exports.createStory = async (req, res, next) => {
     const story = await Story.create({
       user: req.user.id,
       image: req.body.image,
+      music: req.body.music || null,
+      musicName: req.body.musicName || null,
     });
-    await story.populate('user', 'name');
+    await story.populate('user', 'name profilePhoto');
     res.status(201).json({ success: true, story });
   } catch (err) { next(err); }
 };
@@ -17,7 +19,7 @@ exports.createStory = async (req, res, next) => {
 exports.getStories = async (req, res, next) => {
   try {
     const stories = await Story.find({ expiresAt: { $gt: new Date() } })
-      .populate('user', 'name')
+      .populate('user', 'name profilePhoto')
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, stories });
   } catch (err) { next(err); }
@@ -41,6 +43,6 @@ exports.deleteStory = async (req, res, next) => {
     if (story.user.toString() !== req.user.id)
       return res.status(403).json({ success: false, message: 'Not authorized' });
     await story.deleteOne();
-    res.status(200).json({ success: true, message: 'Story deleted' });
+    res.status(200).json({ success: true, message: 'Story delete ho gayi' });
   } catch (err) { next(err); }
 };
