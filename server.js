@@ -2,24 +2,58 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const http = require('http');
+const { Server } = require('socket.io');
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: '*' }
+});
+
+app.set('trust proxy', 1);
 
 // Middleware
 app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/posts', require('./routes/post.routes'));
 app.use('/api/stories', require('./routes/story.routes'));
 app.use('/api/messages', require('./routes/message.routes'));
+
 // Health check
 app.get('/', (req, res) => {
-  res.json({ message: 'Auth API is running ✅' });
+  res.json({ message: 'Rollera API is running ✅' });
+});
+
+// Socket.io - Live Chat
+const onlineUsers = new Map();
+
+io.on('connection', (socket) => {
+  socket.on('join', (userId) => {
+    onlineUsers.set(userId, socket.id);
+    io.emit('onlineUsers', Array.from(onlineUsers.keys()));
+  });
+
+  socket.on('sendMessage', ({ senderId, receiverId, content }) => {
+    const receiverSocket = onlineUsers.get(receiverId);
+    if (receiverSocket) {
+      io.to(receiverSocket).emit('newMessage', { senderId, content, time: new Date() });
+    }
+  });
+
+  socket.on('disconnect', () => {
+    for (const [userId, socketId] of onlineUsers.entries()) {
+      if (socketId === socket.id) { onlineUsers.delete(userId); break; }
+    }
+    io.emit('onlineUsers', Array.from(onlineUsers.keys()));
+  });
 });
 
 // Error handler
@@ -28,14 +62,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ success: false, message: 'Server error', error: err.message });
 });
 
-// DB + Server start
 const PORT = process.env.PORT || 5000;
 
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('✅ MongoDB connected');
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
   })
   .catch((err) => {
     console.error('❌ MongoDB connection error:', err.message);
