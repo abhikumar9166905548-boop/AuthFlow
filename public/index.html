@@ -1200,32 +1200,41 @@ async function handleSearch(q){
       const res=await fetch(`${API}/auth/users?q=${encodeURIComponent(q)}`,{headers:{Authorization:`Bearer ${getToken()}`}});
       const data=await res.json();
       if(!data.success||!data.users.length){document.getElementById('searchResults').innerHTML='<div class="empty">Koi nahi mila 😕</div>';return}
+      const meRes=await fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${getToken()}`}});
+      const meData=await meRes.json();
+      const myFollowing=meData.user?.following||[];
       const seen=new Set();
       const unique=data.users.filter(u=>{
         if(seen.has(u.email))return false;
         seen.add(u.email);
         return true;
       });
-      document.getElementById('searchResults').innerHTML=unique.map(u=>`
+      document.getElementById('searchResults').innerHTML=unique.map(u=>{
+        const isFollowing=myFollowing.includes(u._id);
+        return `
         <div class="user-card">
           <div class="user-card-left" onclick="openUserProfile('${u._id}','${u.name}')">
             <div class="post-avatar">${u.profilePhoto?`<img src="${u.profilePhoto}"/>`:(u.name||'U')[0].toUpperCase()}</div>
             <div class="user-info"><h4>${u.name}</h4><p>${u.email}</p></div>
           </div>
           <div style="display:flex;gap:8px">
-            ${u._id!==getUserId()?`<button class="follow-btn" onclick="handleFollow('${u._id}',this)">Follow</button>`:''}
+            ${u._id!==getUserId()?`<button class="follow-btn ${isFollowing?'following':''}" onclick="handleFollow('${u._id}',this)">${isFollowing?'Following':'Follow'}</button>`:''}
             ${u._id!==getUserId()?`<button class="action-btn" onclick="openChat('${u._id}','${u.name}')">✉️</button>`:''}
             ${u._id!==getUserId()?`<button class="action-btn" onclick="handleBlock('${u._id}','${u.name}')">🚫</button>`:''}
           </div>
-        </div>`).join('');
+        </div>`;
+      }).join('');
     }catch(e){}
   },400);
 }
 async function handleFollow(userId,btn){
   try{
     const res=await fetch(`${API}/auth/follow/${userId}`,{method:'PUT',headers:{Authorization:`Bearer ${getToken()}`}});
-    const data=await res.json();if(!data.success)return;
-    btn.textContent=data.following?'Following':'Follow';btn.classList.toggle('following',data.following);
+    const data=await res.json();
+    if(!data.success)return;
+    btn.textContent=data.following?'Following':'Follow';
+    btn.classList.toggle('following',data.following);
+    loadProfile();
   }catch(e){}
 }
 
