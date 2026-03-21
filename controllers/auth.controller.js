@@ -20,15 +20,25 @@ exports.signup = async (req, res, next) => {
     const { name, email, password } = req.body;
     const existing = await User.findOne({ email });
 
-    // Agar email already registered hai — kisi bhi state mein
-    if (existing) {
+    // ✅ FIX: Sirf verified user ko rok
+    if (existing && existing.isVerified) {
       return res.status(400).json({ success: false, message: 'This email is already registered in Rollera!' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
-    const user = await User.create({ name, email, password, otp, otpExpire, isVerified: false });
+    let user;
+    if (existing && !existing.isVerified) {
+      // Purana unverified user update karo
+      existing.name = name;
+      existing.password = password;
+      existing.otp = otp;
+      existing.otpExpire = otpExpire;
+      user = await existing.save();
+    } else {
+      user = await User.create({ name, email, password, otp, otpExpire, isVerified: false });
+    }
 
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:30px;border:1px solid #eee;border-radius:8px;">
