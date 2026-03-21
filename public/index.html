@@ -301,6 +301,19 @@
     .splash-sub{color:var(--muted);font-size:14px;margin-top:8px}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
     @keyframes heartPop{0%{transform:scale(0);opacity:1}50%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:0}}
+   /* PROFILE IMPROVEMENTS */
+    .profile-cover{width:100%;height:130px;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative;cursor:pointer;overflow:hidden;border-radius:0 0 20px 20px}
+    .profile-cover img{width:100%;height:100%;object-fit:cover}
+    .profile-cover-edit{position:absolute;bottom:8px;right:10px;background:rgba(0,0,0,0.5);border:none;color:#fff;padding:5px 10px;border-radius:8px;cursor:pointer;font-size:11px}
+    .posts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:2px}
+    .grid-post{aspect-ratio:1;overflow:hidden;position:relative;cursor:pointer;background:var(--surface)}
+    .grid-post img,.grid-post video{width:100%;height:100%;object-fit:cover}
+    .grid-post-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;color:#fff;font-size:12px}
+    .grid-post:hover .grid-post-overlay{display:flex}
+    .follow-list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);justify-content:space-between}
+    .follow-list-item:last-child{border-bottom:none}
+    .stat{text-align:center;cursor:pointer;padding:4px;border-radius:8px;transition:all 0.2s}
+    .stat:hover{background:rgba(124,108,252,0.1)}
   </style>
 </head>
 <body>
@@ -435,6 +448,11 @@
   <!-- PROFILE -->
   <div class="page" id="profilePage">
     <div class="profile-wrap">
+      <!-- Cover Photo -->
+      <div class="profile-cover" id="profileCover" onclick="document.getElementById('coverPhotoInput').click()">
+        <button class="profile-cover-edit">📷 Cover change karo</button>
+      </div>
+      <input type="file" id="coverPhotoInput" accept="image/*" style="display:none" onchange="handleCoverPhoto(this)"/>
       <div class="profile-header">
         <div class="profile-photo" id="profilePhoto" onclick="document.getElementById('profilePhotoInput').click()">
           <span id="profilePhotoText">A</span>
@@ -444,24 +462,16 @@
         <div class="profile-name" id="profileName">User</div>
         <div class="profile-bio" id="profileBio"></div>
         <div class="profile-email" id="profileEmail">user@email.com</div>
+        <a id="profileLink" href="#" target="_blank" style="display:none;align-items:center;gap:6px;margin-top:4px;font-size:13px;color:var(--accent);text-decoration:none">🔗 <span id="profileLinkText"></span></a>
         <div class="profile-stats">
-          <div class="stat"><div class="stat-num" id="postCount">0</div><div class="stat-label">Posts</div></div>
-          <div class="stat"><div class="stat-num" id="followerCount">0</div><div class="stat-label">Followers</div></div>
-          <div class="stat"><div class="stat-num" id="followingCount">0</div><div class="stat-label">Following</div></div>
+          <div class="stat" onclick="showFollowList('followers')"><div class="stat-num" id="postCount">0</div><div class="stat-label">Posts</div></div>
+          <div class="stat" onclick="showFollowList('followers')"><div class="stat-num" id="followerCount">0</div><div class="stat-label">Followers</div></div>
+          <div class="stat" onclick="showFollowList('following')"><div class="stat-num" id="followingCount">0</div><div class="stat-label">Following</div></div>
           <div class="stat"><div class="stat-num" id="likeCount">0</div><div class="stat-label">Likes</div></div>
         </div>
         <button class="btn-edit-profile" onclick="openEditProfile()">✏️ Profile Edit karo</button>
         <button class="btn-outline" onclick="handleLogout()">Sign Out</button>
       </div>
-      <div class="profile-tabs">
-        <div class="profile-tab active" onclick="switchProfileTab('posts',this)">Posts</div>
-        <div class="profile-tab" onclick="switchProfileTab('saved',this)">Saved</div>
-      </div>
-      <div id="myPosts"></div>
-      <div id="savedPosts" style="display:none"></div>
-    </div>
-  </div>
-
   <button class="fab" onclick="openCreate()">+</button>
 
   <!-- GLOBAL MINI MUSIC PLAYER -->
@@ -521,6 +531,7 @@
     <div class="sheet">
       <h3>Profile Edit karo ✏️</h3>
       <div class="field"><label>Bio</label><textarea id="editProfileBio" placeholder="Apne baare mein likho..." style="height:80px;resize:none;padding:11px 13px"></textarea></div>
+      <div class="field"><label>Website Link</label><div class="input-wrap"><span class="input-icon">🔗</span><input type="url" id="editProfileLink" placeholder="https://yourwebsite.com"/></div></div>
       <div class="sheet-footer">
         <button class="submit-btn" onclick="submitEditProfile()" id="editProfileBtn">Save karo</button>
       </div>
@@ -862,18 +873,25 @@ async function handleProfilePhoto(input){
     updateTopAvatar(data.user);currentUser=data.user;
   }catch(e){alert(e.message)}
 }
-function openEditProfile(){document.getElementById('editProfileBio').value=currentUser?.bio||'';document.getElementById('editProfileOverlay').classList.add('show')}
+function openEditProfile(){
+  document.getElementById('editProfileBio').value=currentUser?.bio||'';
+  document.getElementById('editProfileLink').value=currentUser?.link||'';
+  document.getElementById('editProfileOverlay').classList.add('show');
+}
 function closeEditProfile(){document.getElementById('editProfileOverlay').classList.remove('show')}
 async function submitEditProfile(){
   const bio=document.getElementById('editProfileBio').value.trim();
+  const link=document.getElementById('editProfileLink').value.trim();
   setLoading('editProfileBtn',true);
   try{
-    const res=await fetch(`${API}/auth/profile/update`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({bio})});
-    const data=await res.json();
-    if(!data.success)throw new Error(data.message);
-    currentUser={...currentUser,bio};document.getElementById('profileBio').textContent=bio;closeEditProfile();
-  }catch(e){alert(e.message)}
-  finally{setLoading('editProfileBtn',false)}
+    const res=await fetch(`${API}/auth/profile/update`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({bio,link})});
+    const data=await res.json();if(!data.success)throw new Error(data.message);
+    currentUser={...currentUser,bio,link};
+    document.getElementById('profileBio').textContent=bio;
+    if(link){document.getElementById('profileLink').style.display='flex';document.getElementById('profileLinkText').textContent=link;document.getElementById('profileLink').href=link}
+    else document.getElementById('profileLink').style.display='none';
+    closeEditProfile();
+  }catch(e){alert(e.message)}finally{setLoading('editProfileBtn',false)}
 }
 
 // ===================== HASHTAGS =====================
@@ -1491,19 +1509,14 @@ async function loadProfile(){
     document.getElementById('followingCount').textContent=u.following?u.following.length:0;
     document.getElementById('likeCount').textContent=myPosts.reduce((a,p)=>a+(p.likes?p.likes.length:0),0);
     if(!myPosts.length){document.getElementById('myPosts').innerHTML='<div class="empty">Abhi koi post nahi ✦</div>';return}
-    document.getElementById('myPosts').innerHTML=myPosts.map(p=>`
-      <div class="post-card">
-        ${p.image?`<img class="post-img" src="${p.image}" loading="lazy"/>`:''}
-        ${p.video?`<video class="post-video" src="${p.video}" controls playsinline></video>`:''}
-        ${p.content?`<div class="post-content">${p.content}</div>`:''}
-        <div class="post-actions">
-          <button class="action-btn liked">❤️ ${p.likes?p.likes.length:0}</button>
-          <button class="action-btn" onclick="openEdit('${p._id}','${(p.content||'').replace(/'/g,"\\'")}')">✏️</button>
-          <button class="action-btn delete" onclick="handleDelete('${p._id}')">🗑</button>
-        </div>
-      </div>`).join('');
-  }catch(e){}
-}
+    // Grid view
+  document.getElementById('myPosts').innerHTML=`<div class="posts-grid">${myPosts.map(p=>`
+  <div class="grid-post" onclick="openEdit('${p._id}','${(p.content||'').replace(/'/g,"\\'")}')">
+    ${p.image?`<img src="${p.image}" loading="lazy"/>`:''}
+    ${p.video?`<video src="${p.video}" muted></video>`:''}
+    ${!p.image&&!p.video?`<div style="padding:8px;font-size:11px">${p.content||''}</div>`:''}
+    <div class="grid-post-overlay">❤️ ${p.likes?.length||0}</div>
+  </div>`).join('')}</div>`; 
 
 // ===================== VIDEO AUTOPLAY =====================
 function initVideoAutoPlay(){
@@ -1538,6 +1551,43 @@ function openFullscreen(video){
   if(video.requestFullscreen)video.requestFullscreen();
   else if(video.webkitRequestFullscreen)video.webkitRequestFullscreen();
   else if(video.mozRequestFullScreen)video.mozRequestFullScreen();
+}
+// COVER PHOTO
+async function handleCoverPhoto(input){
+  const file=input.files[0];if(!file)return;
+  try{
+    const url=await uploadToCloudinary(file,'image');
+    const res=await fetch(`${API}/auth/profile/update`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({coverPhoto:url})});
+    const data=await res.json();if(!data.success)throw new Error(data.message);
+    const cover=document.getElementById('profileCover');
+    cover.style.background=`url(${url}) center/cover`;
+    currentUser=data.user;
+  }catch(e){alert(e.message)}
+}
+
+// FOLLOWERS/FOLLOWING LIST
+async function showFollowList(type){
+  const sheet=document.createElement('div');
+  sheet.className='sheet-overlay show';
+  const title=type==='followers'?'Followers 👥':'Following 👥';
+  sheet.innerHTML=`<div class="sheet"><h3>${title}</h3><div id="followListContent"><div class="empty">Loading...</div></div></div>`;
+  sheet.onclick=(e)=>{if(e.target===sheet)sheet.remove()};
+  document.body.appendChild(sheet);
+  try{
+    const res=await fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    const ids=type==='followers'?(data.user.followers||[]):(data.user.following||[]);
+    if(!ids.length){document.getElementById('followListContent').innerHTML='<div class="empty">Koi nahi hai abhi</div>';return}
+    const myFollowing=data.user.following||[];
+    document.getElementById('followListContent').innerHTML=ids.map(id=>`
+      <div class="follow-list-item">
+        <div style="display:flex;align-items:center;gap:10px;cursor:pointer" onclick="this.closest('.sheet-overlay').remove();openUserProfile('${id}','User')">
+          <div class="post-avatar">${id[0]?.toUpperCase()||'U'}</div>
+          <div style="font-weight:600;font-size:14px">User</div>
+        </div>
+        ${id!==getUserId()?`<button class="follow-btn ${myFollowing.includes(id)?'following':''}" onclick="handleFollow('${id}',this)">${myFollowing.includes(id)?'Following':'Follow'}</button>`:''}
+      </div>`).join('');
+  }catch(e){document.getElementById('followListContent').innerHTML='<div class="empty">Load nahi hua 😕</div>'}
 }
 
 // ===================== USER PROFILE =====================
