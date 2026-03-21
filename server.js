@@ -20,7 +20,7 @@ app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ✅ FIX: Cache band kiya
+// ✅ FIX: Cache bilkul band
 app.use(express.static('public', {
   etag: false,
   maxAge: 0,
@@ -37,9 +37,19 @@ app.use('/api/posts', require('./routes/post.routes'));
 app.use('/api/stories', require('./routes/story.routes'));
 app.use('/api/messages', require('./routes/message.routes'));
 
-// Serve index.html
+// Serve index.html - sab routes pe
 app.get('/', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  res.sendFile(__dirname + '/public/index.html');
+});
+
+app.get('*', (req, res, next) => {
+  if(req.path.startsWith('/api')) return next();
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(__dirname + '/public/index.html');
 });
 
