@@ -261,6 +261,7 @@
     .splash-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:48px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:pulse 1.5s ease-in-out infinite}
     .splash-sub{color:var(--muted);font-size:14px;margin-top:8px}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+    @keyframes heartPop{0%{transform:scale(0);opacity:1}50%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:0}}
   </style>
 </head>
 <body>
@@ -450,9 +451,12 @@
     <div class="sheet">
       <h3>Naya Story ✦</h3>
       <div class="preview-wrap" id="storyPreviewWrap"><img id="storyPreviewImg" src=""/></div>
+      <div class="music-preview" id="storyMusicPreview">🎵 <span id="storyMusicPreviewName">No music</span></div>
       <div class="sheet-footer">
-        <button class="media-btn" onclick="document.getElementById('storyImageInput').click()">📷 Photo chunno</button>
+        <button class="media-btn" onclick="document.getElementById('storyImageInput').click()">📷 Photo</button>
+        <button class="media-btn" onclick="document.getElementById('storyMusicInput').click()">🎵 Music</button>
         <input type="file" id="storyImageInput" accept="image/*" style="display:none" onchange="handleStoryPick(this)"/>
+        <input type="file" id="storyMusicInput" accept="audio/*" style="display:none" onchange="handleStoryMusicPick(this)"/>
         <button class="submit-btn" onclick="handleCreateStory()" id="storyBtn">Story Post karo</button>
       </div>
     </div>
@@ -836,7 +840,13 @@ async function handleCreatePost(){
 
 // STORIES
 function openStoryCreate(){document.getElementById('storyOverlay').classList.add('show')}
-function closeStoryCreate(){document.getElementById('storyOverlay').classList.remove('show');document.getElementById('storyImageInput').value='';document.getElementById('storyPreviewWrap').style.display='none'}
+function closeStoryCreate(){
+  document.getElementById('storyOverlay').classList.remove('show');
+  document.getElementById('storyImageInput').value='';
+  document.getElementById('storyMusicInput').value='';
+  document.getElementById('storyPreviewWrap').style.display='none';
+  document.getElementById('storyMusicPreview').classList.remove('show');
+}
 function handleStoryPick(input){
   const file=input.files[0];if(!file)return;
   const reader=new FileReader();
@@ -844,15 +854,28 @@ function handleStoryPick(input){
   reader.readAsDataURL(file);
 }
 async function handleCreateStory(){
-  const file=document.getElementById('storyImageInput').files[0];if(!file)return alert('Pehle photo chunno!');
+  const file=document.getElementById('storyImageInput').files[0];
+  if(!file)return alert('Pehle photo chunno!');
   setLoading('storyBtn',true);
   try{
     const url=await uploadToCloudinary(file,'image');
-    const res=await fetch(`${API}/stories`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({image:url})});
+    const musFile=document.getElementById('storyMusicInput').files[0];
+    let musicUrl=null,musicName=null;
+    if(musFile){
+      musicUrl=await uploadToCloudinary(musFile,'video');
+      musicName=musFile.name.replace(/\.[^/.]+$/,'');
+    }
+    const res=await fetch(`${API}/stories`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({image:url,music:musicUrl,musicName})});
     const data=await res.json();if(!data.success)throw new Error(data.message);
     closeStoryCreate();loadStories();
   }catch(e){alert(e.message)}
   finally{setLoading('storyBtn',false)}
+}
+
+function handleStoryMusicPick(input){
+  const file=input.files[0];if(!file)return;
+  document.getElementById('storyMusicPreviewName').textContent=file.name.replace(/\.[^/.]+$/,'');
+  document.getElementById('storyMusicPreview').classList.add('show');
 }
 async function loadStories(){
   try{
@@ -927,7 +950,7 @@ function renderFeed(posts){
     const avatarHtml=p.user.profilePhoto?`<img src="${p.user.profilePhoto}"/>`:(p.user.name||'U')[0].toUpperCase();
     const myReaction=p.reactions&&p.reactions.find(r=>r.user===myId);
     const reactionCounts={};(p.reactions||[]).forEach(r=>{reactionCounts[r.type]=(reactionCounts[r.type]||0)+1});
-    return `<div class="post-card" id="post-${p._id}">
+    return `<div class="post-card" id="post-${p._id}" ondblclick="handleDoubleTapLike(event,'${p._id}')">
       <div class="post-header">
         <div class="post-header-left">
           <div class="post-avatar">${avatarHtml}</div>
@@ -935,7 +958,7 @@ function renderFeed(posts){
         </div>
       </div>
       ${p.image?`<img class="post-img" src="${p.image}" loading="lazy"/>`:''}
-      ${p.video?`<video class="post-video" src="${p.video}" controls playsinline></video>`:''}
+      ${p.video?`<video class="post-video" src="${p.video}" controls playsinline onclick="openFullscreen(this)" ondblclick="handleLike('${p._id}',this.closest('.post-card').querySelector('.action-btn'))"></video>`:''}
       ${p.content?`<div class="post-content">${renderHashtagsInContent(p.content)}</div>`:''}
       ${p.music?`<div class="post-music" onclick="toggleMusic('${p.music}','${p.musicName||'Music'}',document.getElementById('mplay-${p._id}'),document.getElementById('micon-${p._id}'))">
         <div class="music-icon" id="micon-${p._id}">🎵</div>
@@ -1235,7 +1258,7 @@ async function loadProfile(){
     document.getElementById('myPosts').innerHTML=myPosts.map(p=>`
       <div class="post-card">
         ${p.image?`<img class="post-img" src="${p.image}" loading="lazy"/>`:''}
-        ${p.video?`<video class="post-video" src="${p.video}" controls></video>`:''}
+        ${p.video?`<video class="post-video" src="${p.video}" controls playsinline></video>`:''}
         ${p.content?`<div class="post-content">${p.content}</div>`:''}
         <div class="post-actions">
           <button class="action-btn liked">❤️ ${p.likes?p.likes.length:0}</button>
@@ -1262,6 +1285,26 @@ function initVideoAutoPlay(){
     });
   },{threshold:0.6});
   videos.forEach(v=>observer.observe(v));
+}
+// DOUBLE TAP TO LIKE
+function handleDoubleTapLike(e,postId){
+  if(e.target.closest('.action-btn')||e.target.closest('.comment-input-wrap')||e.target.closest('.reactions-bar'))return;
+  const btn=document.querySelector(`#post-${postId} .action-btn.liked, #post-${postId} .action-btn:first-child`);
+  handleLike(postId,btn);
+  // Heart animation
+  const heart=document.createElement('div');
+  heart.innerHTML='❤️';
+  heart.style.cssText=`position:absolute;font-size:60px;top:${e.offsetY-30}px;left:${e.offsetX-30}px;pointer-events:none;animation:heartPop 0.8s ease forwards;z-index:99`;
+  const card=document.getElementById(`post-${postId}`);
+  card.style.position='relative';
+  card.appendChild(heart);
+  setTimeout(()=>heart.remove(),800);
+}
+// FULLSCREEN VIDEO
+function openFullscreen(video){
+  if(video.requestFullscreen)video.requestFullscreen();
+  else if(video.webkitRequestFullscreen)video.webkitRequestFullscreen();
+  else if(video.mozRequestFullScreen)video.mozRequestFullScreen();
 }
 
 // AUTO LOGIN
