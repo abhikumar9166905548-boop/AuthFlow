@@ -29,7 +29,7 @@ app.use('/api/messages', require('./routes/message.routes'));
 
 // Health check
 app.get('/', (req, res) => {
-  res.json({ message: 'Rollera API is running ✅' });
+  res.sendFile(__dirname + '/public/index.html');
 });
 
 // Socket.io - Live Chat
