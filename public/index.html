@@ -1067,15 +1067,35 @@ function toggleReelPlay(video){
 }
 
 function initReelAutoPlay(){
+  document.addEventListener('click', ()=>{
+    document.querySelectorAll('.reel-video').forEach(v=>{
+      if(!v.paused){
+        v.muted=false;
+        const btn=v.closest('.reel-item')?.querySelector('[id^="mute-btn-"]');
+        if(btn)btn.textContent='🔊';
+      }
+    });
+  },{once:true});
+
   const videos=document.querySelectorAll('.reel-video');
   const observer=new IntersectionObserver((entries)=>{
     entries.forEach(entry=>{
       const video=entry.target;
+      const reelItem=video.closest('.reel-item');
+      const btn=reelItem?.querySelector('[id^="mute-btn-"]');
       if(entry.isIntersecting&&entry.intersectionRatio>=0.7){
-        video.play().catch(()=>{});
+        video.muted=false;
+        video.play().catch(()=>{
+          video.muted=true;
+          video.play().catch(()=>{});
+          if(btn)btn.textContent='🔇';
+        });
+        if(btn)btn.textContent='🔊';
       } else {
         video.pause();
         video.currentTime=0;
+        video.muted=true;
+        if(btn)btn.textContent='🔇';
       }
     });
   },{threshold:0.7});
