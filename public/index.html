@@ -1011,7 +1011,6 @@ async function loadReels(){
   try{
     const res=await fetch(`${API}/posts`,{headers:{Authorization:`Bearer ${getToken()}`}});
     const data=await res.json();
-    // Sirf video posts ko reels mein dikhao
     const reels=(data.posts||[]).filter(p=>p.video);
     if(!reels.length){container.innerHTML='<div class="reel-loading">Koi reel nahi — video post karo! 🎬</div>';return}
     container.innerHTML=reels.map(p=>{
@@ -1019,8 +1018,9 @@ async function loadReels(){
       const avatarHtml=p.user.profilePhoto?`<img src="${p.user.profilePhoto}"/>`:(p.user.name||'U')[0].toUpperCase();
       return `
       <div class="reel-item" id="reel-${p._id}">
-        <video class="reel-video" src="${p.video}" loop playsinline muted preload="none" onclick="toggleReelPlay(this)"></video>
+        <video class="reel-video" src="${p.video}" loop playsinline muted preload="none" onclick="toggleReelMute(this)"></video>
         <div class="reel-overlay"></div>
+        <div style="position:absolute;top:16px;right:16px;font-size:22px;z-index:10;cursor:pointer;background:rgba(0,0,0,0.4);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center" onclick="toggleReelMute(this.closest('.reel-item').querySelector('video'))" id="mute-btn-${p._id}">🔇</div>
         <div class="reel-actions">
           <button class="reel-action-btn" onclick="handleLike('${p._id}',this)">
             <span>${liked?'❤️':'🤍'}</span>
@@ -1053,6 +1053,15 @@ async function loadReels(){
   }catch(e){container.innerHTML='<div class="reel-loading">Reels load nahi hue 😕</div>'}
 }
 
+function toggleReelMute(video){
+  video.muted=!video.muted;
+  if(video.paused)video.play();
+  // Icon update karo
+  const reelItem=video.closest('.reel-item');
+  const btn=reelItem.querySelector('[id^="mute-btn-"]');
+  if(btn)btn.textContent=video.muted?'🔇':'🔊';
+}
+
 function toggleReelPlay(video){
   if(video.paused)video.play();else video.pause();
 }
@@ -1072,7 +1081,6 @@ function initReelAutoPlay(){
   },{threshold:0.7});
   videos.forEach(v=>observer.observe(v));
 }
-
 // ===================== SUGGESTIONS =====================
 async function loadSuggestions(){
   try{
