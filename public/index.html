@@ -1584,7 +1584,9 @@ async function loadProfile(){
     ${p.video?`<video src="${p.video}" muted></video>`:''}
     ${!p.image&&!p.video?`<div style="padding:8px;font-size:11px">${p.content||''}</div>`:''}
     <div class="grid-post-overlay">❤️ ${p.likes?.length||0}</div>
-  </div>`).join('')}</div>`; 
+  </div>`).join('')}</div>`;
+  }catch(e){}
+}
 
 // ===================== VIDEO AUTOPLAY =====================
 function initVideoAutoPlay(){
@@ -1743,6 +1745,20 @@ async function openExplorePost(postId){
     else{clearToken();setTimeout(()=>{document.getElementById('authPage').style.display='block'},2000)}
   }catch{clearToken();setTimeout(()=>{document.getElementById('authPage').style.display='block'},2000)}
 })();
+async function loadMyReels(){
+  const c=document.getElementById('myReels');
+  try{
+    const res=await fetch(`${API}/posts`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const pd=await res.json();
+    const myReels=(pd.posts||[]).filter(p=>p.user._id===getUserId()&&p.video);
+    if(!myReels.length){c.innerHTML='<div class="empty">Koi reel nahi ✦</div>';return}
+    c.innerHTML=`<div class="posts-grid">${myReels.map(p=>`
+      <div class="grid-post">
+        <video src="${p.video}" muted></video>
+        <div class="grid-post-overlay">▶ ${p.likes?.length||0}</div>
+      </div>`).join('')}</div>`;
+  }catch(e){}
+}
 </script>
 </body>
 </html>
