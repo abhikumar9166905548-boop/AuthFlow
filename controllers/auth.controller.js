@@ -344,3 +344,57 @@ exports.adminDeletePost = async (req, res, next) => {
     res.status(200).json({ success: true, message: 'Post delete ho gaya' });
   } catch (err) { next(err); }
 };
+// ─────────────────────────────────────────────
+// @route   PUT /api/auth/close-friends/:id
+// @desc    Add/Remove close friend
+// @access  Private
+// ─────────────────────────────────────────────
+exports.toggleCloseFriend = async (req, res, next) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    const isCloseFriend = currentUser.closeFriends.includes(req.params.id);
+    if (isCloseFriend) {
+      await User.findByIdAndUpdate(req.user.id, { $pull: { closeFriends: req.params.id } });
+      res.status(200).json({ success: true, isCloseFriend: false, message: 'Close friend remove ho gaya' });
+    } else {
+      await User.findByIdAndUpdate(req.user.id, { $push: { closeFriends: req.params.id } });
+      res.status(200).json({ success: true, isCloseFriend: true, message: 'Close friend add ho gaya! 💚' });
+    }
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   PUT /api/auth/location
+// @desc    Update user location
+// @access  Private
+// ─────────────────────────────────────────────
+exports.updateLocation = async (req, res, next) => {
+  try {
+    const { longitude, latitude } = req.body;
+    await User.findByIdAndUpdate(req.user.id, {
+      location: { type: 'Point', coordinates: [longitude, latitude] }
+    });
+    res.status(200).json({ success: true, message: 'Location update ho gayi' });
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/nearby
+// @desc    Get nearby users
+// @access  Private
+// ─────────────────────────────────────────────
+exports.getNearbyUsers = async (req, res, next) => {
+  try {
+    const { longitude, latitude, maxDistance = 10000 } = req.query;
+    const users = await User.find({
+      _id: { $ne: req.user.id },
+      location: {
+        $near: {
+          $geometry: { type: 'Point', coordinates: [parseFloat(longitude), parseFloat(latitude)] },
+          $maxDistance: parseInt(maxDistance),
+        }
+      }
+    }).select('name profilePhoto bio isVerifiedBadge followers').limit(20);
+    res.status(200).json({ success: true, users });
+  } catch (err) { next(err); }
+};

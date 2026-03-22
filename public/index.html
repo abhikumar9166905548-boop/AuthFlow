@@ -470,6 +470,14 @@
   <div class="page" id="searchPage">
     <div class="search-wrap">
       <div class="section-title">Search Users</div>
+      <!-- NEARBY USERS -->
+      <div id="nearbyWrap" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:600;color:var(--muted)">🌍 Nearby Users</div>
+          <button onclick="loadNearbyUsers()" style="padding:5px 12px;background:rgba(124,108,252,0.1);border:1px solid var(--accent);border-radius:8px;color:var(--accent);font-size:11px;cursor:pointer;font-weight:600">Find Nearby</button>
+        </div>
+      <div id="nearbyList"><div class="empty" style="padding:10px">Location allow karo aur Find Nearby dabao!</div></div>
+    </div>
       <div class="search-bar">
         <span class="search-icon-pos">🔍</span>
         <input type="text" id="searchInput" placeholder="Naam se search karo..." oninput="handleSearch(this.value)" style="padding-left:38px"/>
@@ -557,11 +565,37 @@
     <div class="sheet">
       <h3>Naya Post ✦</h3>
       <textarea id="postContent" placeholder="Kya soch rahe ho? #hashtag bhi likh sakte ho!" style="padding:11px 13px"></textarea>
-      <div class="preview-wrap" id="postPreviewWrap">
-        <img id="postPreviewImg" src=""/>
-        <video id="postPreviewVideo" controls style="display:none"></video>
-      </div>
-      <div class="music-preview" id="musicPreview">🎵 <span id="musicPreviewName">No music</span></div>
+    <div class="preview-wrap" id="postPreviewWrap">
+      <img id="postPreviewImg" src=""/>
+      <video id="postPreviewVideo" controls style="display:none"></video>
+     </div>
+  <div class="music-preview" id="musicPreview">🎵 <span id="musicPreviewName">No music</span></div>
+  <!-- MOOD SELECTOR -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="moodSelector">
+    <div style="width:100%;font-size:12px;color:var(--muted);margin-bottom:4px">Mood select karo (optional):</div>
+      ${['😊 Happy','😢 Sad','😡 Angry','🎉 Excited','😍 Loved','😴 Tired','🤔 Thoughtful','😎 Cool'].map(m=>`
+      <button onclick="selectMood('${m}',this)" style="padding:4px 10px;border-radius:20px;border:1px solid var(--border);background:rgba(255,255,255,0.04);cursor:pointer;font-size:12px;transition:all 0.2s" class="mood-btn">${m}</button>`).join('')}
+    </div>
+ <!-- SELF DESTRUCT -->
+ <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+   <span style="font-size:12px;color:var(--muted)">💣 Self-destruct:</span>
+   <select id="selfDestructSelect" style="background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:10px;font-size:12px;outline:none">
+     <option value="0">Off</option>
+     <option value="1">1 hour</option>
+     <option value="6">6 hours</option>
+     <option value="12">12 hours</option>
+     <option value="24">24 hours</option>
+     <option value="48">48 hours</option>
+   </select>
+ </div>
+ <!-- CLOSE FRIENDS -->
+ <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+   <span style="font-size:12px;color:var(--muted)">💚 Close Friends only:</span>
+   <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+     <input type="checkbox" id="closeFriendsCheck" style="width:16px;height:16px;accent-color:var(--accent)"/>
+     <span style="font-size:12px;color:var(--text)">On</span>
+   </label>
+ </div>
       <div class="sheet-footer">
         <button class="media-btn" onclick="document.getElementById('postImageInput').click()">📷</button>
         <button class="media-btn" onclick="document.getElementById('postVideoInput').click()">🎬</button>
@@ -648,7 +682,18 @@
     <div class="chat-messages" id="chatMessages"></div>
     <div class="chat-input-wrap">
       <input type="text" id="chatInput" placeholder="Message likho..." onkeydown="if(event.key==='Enter')sendChatMessage()" style="padding:10px 14px"/>
+      <button class="chat-send" id="voiceBtn" onclick="toggleVoiceRecord()" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:var(--muted)">🎤</button>
       <button class="chat-send" onclick="sendChatMessage()">Send</button>
+    </div>
+    <div id="voiceRecordBar" style="display:none;padding:10px 16px;background:rgba(248,113,113,0.1);border-top:1px solid #f87171;align-items:center;gap:10px;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:10px;height:10px;border-radius:50%;background:#f87171;animation:pulse 1s infinite"></div>
+        <span style="font-size:13px;color:#f87171" id="voiceTimer">0:00</span>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="cancelVoiceRecord()" style="padding:6px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:12px">Cancel</button>
+        <button onclick="sendVoiceMessage()" style="padding:6px 12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:8px;color:#fff;cursor:pointer;font-size:12px;font-weight:600">Send 🎤</button>
+      </div>
     </div>
   </div>
 
@@ -992,7 +1037,18 @@ function filterByHashtag(tag,el){
   if(el)el.classList.add('active');
   renderFeed(tag?allPosts.filter(p=>(p.content||'').includes(tag)):allPosts);
 }
-
+// MOOD
+let _selectedMood=null;
+function selectMood(mood,btn){
+  document.querySelectorAll('.mood-btn').forEach(b=>{b.style.background='rgba(255,255,255,0.04)';b.style.borderColor='var(--border)'});
+  if(window._selectedMood===mood){
+    window._selectedMood=null;
+  } else {
+    window._selectedMood=mood;
+    btn.style.background='rgba(124,108,252,0.3)';
+    btn.style.borderColor='var(--accent)';
+  }
+}
 // ===================== MUSIC PICK =====================
 function handleMusicPick(input){
   const file=input.files[0];if(!file)return;
@@ -1033,6 +1089,9 @@ async function handleCreatePost(){
   const imgFile=document.getElementById('postImageInput').files[0];
   const vidFile=document.getElementById('postVideoInput').files[0];
   const musFile=document.getElementById('postMusicInput').files[0];
+  const mood=window._selectedMood||null;
+  const selfDestructHours=parseInt(document.getElementById('selfDestructSelect').value)||0;
+  const closeFriendsOnly=document.getElementById('closeFriendsCheck').checked;
   if(!content&&!imgFile&&!vidFile)return;
   setLoading('postBtn',true);
   try{
@@ -1040,7 +1099,7 @@ async function handleCreatePost(){
     if(imgFile)imageUrl=await uploadToCloudinary(imgFile,'image');
     if(vidFile)videoUrl=await uploadToCloudinary(vidFile,'video');
     if(musFile)musicUrl=await uploadToCloudinary(musFile,'video');
-    const res=await fetch(`${API}/posts`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({content,image:imageUrl,video:videoUrl,music:musicUrl,musicName:postMusicName||musFile?.name})});
+    const res=await fetch(`${API}/posts`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({content,image:imageUrl,video:videoUrl,music:musicUrl,musicName:postMusicName||musFile?.name,mood,selfDestructHours,closeFriendsOnly})});
     const data=await res.json();
     if(!data.success)throw new Error(data.message);
     closeCreate();loadFeed();
@@ -1297,6 +1356,9 @@ function renderFeed(posts){
       ${p.image?`<img class="post-img" src="${p.image}" loading="lazy"/>`:''}
       ${p.video?`<video class="post-video" src="${p.video}" controls playsinline onclick="openFullscreen(this)"></video>`:''}
       ${p.content?`<div class="post-content">${renderHashtagsInContent(p.content)}</div>`:''}
+      ${p.mood?`<div style="padding:6px 14px;font-size:13px">Feeling: ${p.mood}</div>`:''}
+      ${p.selfDestruct?`<div style="padding:4px 14px;font-size:11px;color:#f87171">💣 ${Math.ceil((new Date(p.selfDestruct)-Date.now())/3600000)}h mein delete ho jayegi</div>`:''}
+      ${p.closeFriendsOnly?`<div style="padding:4px 14px;font-size:11px;color:#4ade80">💚 Close Friends only</div>`:''}
       ${p.music?`<div class="post-music" onclick="toggleMusic('${p.music}','${p.musicName||'Music'}',document.getElementById('mplay-${p._id}'),document.getElementById('micon-${p._id}'))">
         <div class="music-icon" id="micon-${p._id}">🎵</div>
         <div class="music-info"><div class="music-name">${p.musicName||'Music'}</div><div class="music-sub">Tap to play ✦</div></div>
@@ -1516,7 +1578,10 @@ function renderMessages(messages){
   c.innerHTML=messages.map(m=>{
     const sent=m.sender._id===myId||m.sender===myId;
     const time=new Date(m.createdAt).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
-    return `<div class="msg ${sent?'sent':'received'}">${m.content}<div class="msg-time">${time}</div></div>`;
+    return `<div class="msg ${sent?'sent':'received'}">
+      ${m.isVoice?`<audio controls src="${m.voiceUrl}" style="max-width:200px;height:36px"></audio><div style="font-size:10px;opacity:0.7">${m.duration}s</div>`:`${m.content}`}
+      <div class="msg-time">${time}</div>
+    </div>`;
   }).join('');
   c.scrollTop=c.scrollHeight;
 }
@@ -1966,6 +2031,90 @@ async function adminDeletePost(postId,btn){
     const res=await fetch(`${API}/auth/admin/posts/${postId}`,{method:'DELETE',headers:{Authorization:`Bearer ${getToken()}`}});
     const data=await res.json();
     if(data.success)loadAdminPosts();
+  }catch(e){}
+}
+// VOICE MESSAGE
+let mediaRecorder=null,audioChunks=[],voiceTimerInterval=null,voiceSeconds=0;
+
+function toggleVoiceRecord(){
+  if(mediaRecorder&&mediaRecorder.state==='recording'){
+    stopVoiceRecord();
+  } else {
+    startVoiceRecord();
+  }
+}
+
+async function startVoiceRecord(){
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    mediaRecorder=new MediaRecorder(stream);
+    audioChunks=[];
+    mediaRecorder.ondataavailable=e=>audioChunks.push(e.data);
+    mediaRecorder.start();
+    document.getElementById('voiceRecordBar').style.display='flex';
+    document.getElementById('voiceBtn').style.color='#f87171';
+    voiceSeconds=0;
+    voiceTimerInterval=setInterval(()=>{
+      voiceSeconds++;
+      const m=Math.floor(voiceSeconds/60);
+      const s=voiceSeconds%60;
+      document.getElementById('voiceTimer').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+    },1000);
+  }catch(e){alert('Microphone access do!')}
+}
+
+function stopVoiceRecord(){
+  if(mediaRecorder){mediaRecorder.stop();mediaRecorder.stream.getTracks().forEach(t=>t.stop())}
+  clearInterval(voiceTimerInterval);
+  document.getElementById('voiceBtn').style.color='var(--muted)';
+}
+
+function cancelVoiceRecord(){
+  stopVoiceRecord();
+  audioChunks=[];
+  document.getElementById('voiceRecordBar').style.display='none';
+  document.getElementById('voiceTimer').textContent='0:00';
+}
+
+async function sendVoiceMessage(){
+  if(!audioChunks.length)return;
+  stopVoiceRecord();
+  try{
+    const blob=new Blob(audioChunks,{type:'audio/webm'});
+    const file=new File([blob],'voice.webm',{type:'audio/webm'});
+    const voiceUrl=await uploadToCloudinary(file,'video');
+    const res=await fetch(`${API}/messages/voice`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({receiverId:currentChatUser.id,voiceUrl,duration:voiceSeconds})});
+    const data=await res.json();
+    if(data.success){
+      const c=document.getElementById('chatMessages');
+      const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+      c.innerHTML+=`<div class="msg sent">🎤 Voice Message (${voiceSeconds}s)<div class="msg-time">${time}</div></div>`;
+      c.scrollTop=c.scrollHeight;
+    }
+    document.getElementById('voiceRecordBar').style.display='none';
+    audioChunks=[];
+  }catch(e){alert(e.message)}
+}
+// NEARBY USERS
+async function loadNearbyUsers(){
+  try{
+    if(!navigator.geolocation)return alert('Location supported nahi hai!');
+    navigator.geolocation.getCurrentPosition(async(pos)=>{
+      const {latitude,longitude}=pos.coords;
+      // Update location
+      await fetch(`${API}/auth/location`,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:`Bearer ${getToken()}`},body:JSON.stringify({latitude,longitude})});
+      // Get nearby
+      const res=await fetch(`${API}/auth/nearby?latitude=${latitude}&longitude=${longitude}&maxDistance=10000`,{headers:{Authorization:`Bearer ${getToken()}`}});
+      const data=await res.json();
+      const list=document.getElementById('nearbyList');
+      if(!data.users||!data.users.length){list.innerHTML='<div class="empty" style="padding:10px">10km mein koi nahi mila 😕</div>';return}
+      list.innerHTML=`<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none">`+data.users.map(u=>`
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:12px;text-align:center;flex-shrink:0;width:100px">
+          <div class="suggestion-avatar" style="margin:0 auto 6px">${u.profilePhoto?`<img src="${u.profilePhoto}"/>`:(u.name||'U')[0].toUpperCase()}</div>
+          <div style="font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.name}</div>
+          <button onclick="handleFollow('${u._id}',this)" class="suggestion-follow-btn" style="margin-top:6px">Follow</button>
+        </div>`).join('')+`</div>`;
+    },()=>alert('Location access do!'));
   }catch(e){}
 }
 

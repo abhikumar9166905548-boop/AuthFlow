@@ -113,3 +113,29 @@ exports.reportPost = async (req, res, next) => {
     res.status(200).json({ success: true, message: 'Post report ho gaya' });
   } catch (err) { next(err); }
 };
+
+exports.getFeed = async (req, res, next) => {
+  try {
+    const now = new Date();
+    const currentUser = await require('../models/User.model').findById(req.user.id);
+    const posts = await Post.find({
+      $and: [
+        {
+          $or: [
+            { selfDestruct: null },
+            { selfDestruct: { $gt: now } }
+          ]
+        },
+        {
+          $or: [
+            { closeFriendsOnly: false },
+            { user: { $in: [...(currentUser.closeFriends || []), req.user.id] } }
+          ]
+        }
+      ]
+    })
+    .populate('user', 'name email profilePhoto isVerifiedBadge')
+    .sort({ createdAt: -1 });
+    res.status(200).json({ success: true, posts });
+  } catch (err) { next(err); }
+};

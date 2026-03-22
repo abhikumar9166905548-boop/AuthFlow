@@ -51,8 +51,23 @@ const postSchema = new mongoose.Schema(
         createdAt: { type: Date, default: Date.now },
       }
     ],
+    mood: {
+      type: String,
+      default: null,
+    },
+    selfDestruct: {
+      type: Date,
+      default: null,
+    },
+    closeFriendsOnly: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
+
+// Auto delete self-destruct posts
+postSchema.index({ selfDestruct: 1 }, { expireAfterSeconds: 0, partialFilterExpression: { selfDestruct: { $type: 'date' } } });
 
 module.exports = mongoose.model('Post', postSchema);

@@ -21,6 +21,18 @@ const messageSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    voiceUrl: {
+      type: String,
+      default: null,
+    },
+    duration: {
+      type: Number,
+      default: 0,
+    },
+    isVoice: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

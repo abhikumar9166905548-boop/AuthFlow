@@ -67,6 +67,11 @@ const userSchema = new mongoose.Schema(
     ],
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    closeFriends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    location: {
+      type: { type: String, enum: ['Point'], default: 'Point' },
+      coordinates: { type: [Number], default: [0, 0] },
+    },
     notifications: [
       {
         type: { type: String },
@@ -90,6 +95,9 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Geo index for nearby users
+userSchema.index({ location: '2dsphere' });
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();

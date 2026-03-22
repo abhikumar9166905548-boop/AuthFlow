@@ -7,5 +7,5 @@ router.get('/inbox', protect, getInbox);
 router.get('/unread', protect, getUnreadCount);
 router.post('/send', protect, sendMessage);
 router.get('/:userId', protect, getConversation);
-
+router.post('/voice', protect, require('../controllers/message.controller').sendVoiceMessage);
 module.exports = router;

@@ -20,7 +20,6 @@ exports.sendMessage = async (req, res, next) => {
     await message.populate('sender', 'name');
     await message.populate('receiver', 'name');
 
-    // Notification
     await User.findByIdAndUpdate(receiverId, {
       $push: {
         notifications: {
@@ -30,6 +29,27 @@ exports.sendMessage = async (req, res, next) => {
         }
       }
     });
+
+    res.status(201).json({ success: true, message });
+  } catch (err) { next(err); }
+};
+
+// Send voice message
+exports.sendVoiceMessage = async (req, res, next) => {
+  try {
+    const { receiverId, voiceUrl, duration } = req.body;
+    if (!receiverId || !voiceUrl)
+      return res.status(400).json({ success: false, message: 'receiverId aur voiceUrl required hai' });
+
+    const message = await Message.create({
+      sender: req.user.id,
+      receiver: receiverId,
+      content: '🎤 Voice Message',
+      voiceUrl,
+      duration: duration || 0,
+      isVoice: true,
+    });
+    await message.populate('sender', 'name profilePhoto');
 
     res.status(201).json({ success: true, message });
   } catch (err) { next(err); }
@@ -48,7 +68,6 @@ exports.getConversation = async (req, res, next) => {
     .populate('receiver', 'name')
     .sort({ createdAt: 1 });
 
-    // Mark as read
     await Message.updateMany(
       { sender: req.params.userId, receiver: req.user.id, read: false },
       { read: true }
@@ -68,7 +87,6 @@ exports.getInbox = async (req, res, next) => {
     .populate('receiver', 'name')
     .sort({ createdAt: -1 });
 
-    // Get unique conversations
     const seen = new Set();
     const conversations = [];
     for (const msg of messages) {
@@ -79,7 +97,7 @@ exports.getInbox = async (req, res, next) => {
         seen.add(otherId);
         conversations.push({
           user: msg.sender._id.toString() === req.user.id ? msg.receiver : msg.sender,
-          lastMessage: msg.content,
+          lastMessage: msg.isVoice ? '🎤 Voice Message' : msg.content,
           read: msg.read,
           time: msg.createdAt,
         });
