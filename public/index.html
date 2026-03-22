@@ -1047,7 +1047,7 @@ async function loadReels(){
             <span>${liked?'❤️':'🤍'}</span>
             <span class="reel-action-count" id="reel-likes-${p._id}">${p.likes?.length||0}</span>
           </button>
-          <button class="reel-action-btn" onclick="toggleComments('${p._id}')">
+          <button class="reel-action-btn" onclick="toggleReelComments('${p._id}')">
             <span>💬</span>
             <span class="reel-action-count">Comment</span>
           </button>
@@ -1068,12 +1068,34 @@ async function loadReels(){
           ${p.content?`<div class="reel-caption">${p.content}</div>`:''}
           ${p.music?`<div class="reel-music-bar"><div class="reel-music-disc"></div> 🎵 ${p.musicName||'Original Sound'}</div>`:''}
         </div>
+        <!-- COMMENT BOX -->
+        <div id="reel-comments-${p._id}" style="display:none;position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);padding:14px;max-height:50vh;overflow-y:auto;z-index:20">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="color:#fff;font-weight:700;font-size:14px">Comments 💬</span>
+            <button onclick="toggleReelComments('${p._id}')" style="background:none;border:none;color:#fff;font-size:18px;cursor:pointer">✕</button>
+          </div>
+          <div id="comment-list-${p._id}" style="margin-bottom:10px"></div>
+          <div style="display:flex;gap:8px">
+            <input type="text" placeholder="Comment likho..." id="comment-input-${p._id}" onkeydown="if(event.key==='Enter')submitComment('${p._id}')" style="flex:1;padding:8px 12px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;border-radius:10px;font-size:13px"/>
+            <button onclick="submitComment('${p._id}')" style="padding:8px 14px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#fff;font-weight:600;cursor:pointer">Send</button>
+          </div>
+        </div>
       </div>`;
     }).join('');
     initReelAutoPlay();
   }catch(e){container.innerHTML='<div class="reel-loading">Reels load nahi hue 😕</div>'}
 }
 
+function toggleReelComments(postId){
+  const box=document.getElementById(`reel-comments-${postId}`);
+  const isOpen=box.style.display!=='none';
+  // Sab band karo pehle
+  document.querySelectorAll('[id^="reel-comments-"]').forEach(el=>el.style.display='none');
+  if(!isOpen){
+    box.style.display='block';
+    loadComments(postId);
+  }
+}
 function toggleReelMute(video){
   video.muted=!video.muted;
   if(video.paused)video.play();
