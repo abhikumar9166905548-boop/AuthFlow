@@ -301,6 +301,9 @@
     .splash-sub{color:var(--muted);font-size:14px;margin-top:8px}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
     @keyframes heartPop{0%{transform:scale(0);opacity:1}50%{transform:scale(1.3);opacity:1}100%{transform:scale(1);opacity:0}}
+    @keyframes dot1{0%,100%{transform:translateY(0);opacity:0.4}33%{transform:translateY(-8px);opacity:1}}
+    @keyframes dot2{0%,100%{transform:translateY(0);opacity:0.4}50%{transform:translateY(-8px);opacity:1}}
+    @keyframes dot3{0%,100%{transform:translateY(0);opacity:0.4}66%{transform:translateY(-8px);opacity:1}}
    /* PROFILE IMPROVEMENTS */
     .profile-cover{width:100%;height:130px;background:linear-gradient(135deg,var(--accent),var(--accent2));position:relative;cursor:pointer;overflow:hidden;border-radius:0 0 20px 20px}
     .profile-cover img{width:100%;height:100%;object-fit:cover}
@@ -323,8 +326,14 @@
 </head>
 <body>
 <div class="splash" id="splash">
+  <div style="width:80px;height:80px;border-radius:28px;background:linear-gradient(135deg,#7c6cfc,#c084fc);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;box-shadow:0 20px 60px rgba(124,108,252,0.5);animation:pulse 1.5s ease-in-out infinite">✦</div>
   <div class="splash-logo">Rollera</div>
   <div class="splash-sub">Share your world ✦</div>
+  <div style="margin-top:40px;display:flex;gap:8px">
+    <div style="width:8px;height:8px;border-radius:50%;background:#7c6cfc;animation:dot1 1.2s ease-in-out infinite"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#c084fc;animation:dot2 1.2s ease-in-out infinite"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#06b6d4;animation:dot3 1.2s ease-in-out infinite"></div>
+  </div>
 </div>
 <div class="blobs"><div class="blob blob1"></div><div class="blob blob2"></div><div class="blob blob3"></div></div>
 
@@ -595,6 +604,10 @@
     </div>
     <div class="story-viewer-img"><img id="storyViewerImg" src=""/></div>
     <button class="story-close" onclick="closeStoryViewer()">✕</button>
+    <div id="storyReplyBox" style="position:absolute;bottom:20px;left:16px;right:16px;display:flex;gap:8px">
+      <input type="text" id="storyReplyInput" placeholder="Reply karo..." style="flex:1;padding:10px 14px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:25px;color:#fff;font-size:13px;outline:none"/>
+      <button onclick="sendStoryReply()" style="padding:10px 16px;background:linear-gradient(135deg,#7c6cfc,#c084fc);border:none;border-radius:25px;color:#fff;font-weight:600;cursor:pointer">Send</button>
+    </div>
   </div>
 
   <!-- CHAT -->
@@ -805,6 +818,10 @@ function showApp(user){
   initSocket(user._id);
   loadFeed();loadStories();loadSuggestions();loadNotifCount();loadDMCount();
 }
+// Real-time notifications
+setInterval(()=>{
+  if(getToken()){loadNotifCount();loadDMCount();}
+},30000);
 function updateTopAvatar(user){
   const el=document.getElementById('topAvatar');
   if(user.profilePhoto)el.innerHTML=`<img src="${user.profilePhoto}"/>`;
@@ -1048,10 +1065,22 @@ function viewStory(id,img,name,time){
   document.getElementById('storyViewer').classList.add('show');
   const bar=document.getElementById('storyProgressBar');
   bar.style.animation='none';bar.offsetHeight;bar.style.animation='progress 5s linear forwards';
-  setTimeout(closeStoryViewer,5000);
+  const replyBox=document.getElementById('storyReplyBox');
+  if(replyBox){replyBox.dataset.storyId=id;}
+  window._storyTimer=setTimeout(closeStoryViewer,5000);
   fetch(`${API}/stories/${id}/view`,{method:'PUT',headers:{Authorization:`Bearer ${getToken()}`}}).catch(()=>{});
 }
-function closeStoryViewer(){document.getElementById('storyViewer').classList.remove('show')}
+function closeStoryViewer(){
+  document.getElementById('storyViewer').classList.remove('show');
+  clearTimeout(window._storyTimer);
+}
+async function sendStoryReply(){
+  const input=document.getElementById('storyReplyInput');
+  const content=input.value.trim();
+  if(!content)return;
+  input.value='';
+  alert('Reply bhej diya! ✦');
+}
 
 // ===================== REELS =====================
 async function loadReels(){
@@ -1494,11 +1523,11 @@ async function handleSearch(q){
       });
       document.getElementById('searchResults').innerHTML=unique.map(u=>{
         const isFollowing=myFollowing.includes(u._id);
-        return `
+        return `viewStory
         <div class="user-card">
           <div class="user-card-left" onclick="openUserProfile('${u._id}','${u.name}')">
             <div class="post-avatar">${u.profilePhoto?`<img src="${u.profilePhoto}"/>`:(u.name||'U')[0].toUpperCase()}</div>
-            <div class="user-info"><h4>${u.name}</h4><p>${u.email}</p></div>
+            <div class="user-info"><h4>${u.name}</h4><p>${u.bio||u.email}</p></div>
           </div>
           <div style="display:flex;gap:8px">
             ${u._id!==getUserId()?`<button class="follow-btn ${isFollowing?'following':''}" onclick="handleFollow('${u._id}',this)">${isFollowing?'Following':'Follow'}</button>`:''}
@@ -1566,7 +1595,9 @@ async function loadProfile(){
     const photoEl=document.getElementById('profilePhoto');
     if(u.profilePhoto)photoEl.innerHTML=`<img src="${u.profilePhoto}"/><div class="profile-photo-edit">✏️</div>`;
     else document.getElementById('profilePhotoText').textContent=(u.name||'U')[0].toUpperCase();
-    document.getElementById('profileName').innerHTML=u.name+(u.isVerifiedBadge?'<span style="background:#7c6cfc;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-left:6px">✓</span>':'');
+    const isVerified=u.isVerifiedBadge||(u.followers&&u.followers.length>=10);
+    document.getElementById('profileName').innerHTML=u.name+(isVerified?'<span style="background:#7c6cfc;color:#fff;border-radius:50%;width:16px;height:16px;font-size:10px;display:inline-flex;align-items:center;justify-content:center;margin-left:6px">✓</span>':'');
+    if(u.followers&&u.followers.length>=5){document.getElementById('profileHighlight').style.display='flex';}
     document.getElementById('profileBio').textContent=u.bio||'Bio add karo ✦';
     document.getElementById('profileEmail').textContent=u.email;
     const pr=await fetch(`${API}/posts`,{headers:{Authorization:`Bearer ${getToken()}`}});
