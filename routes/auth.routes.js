@@ -77,5 +77,9 @@ router.put('/verify/:id', protect, require('../controllers/auth.controller').tog
 router.post('/verify-otp', require('../controllers/auth.controller').verifyOtp);
 router.post('/resend-otp', require('../controllers/auth.controller').resendOtp);
 router.post('/google', require('../controllers/auth.controller').googleLogin);
+router.get('/admin/users', protect, require('../controllers/auth.controller').adminGetUsers);
+router.delete('/admin/users/:id', protect, require('../controllers/auth.controller').adminDeleteUser);
+router.get('/admin/posts', protect, require('../controllers/auth.controller').adminGetPosts);
+router.delete('/admin/posts/:id', protect, require('../controllers/auth.controller').adminDeletePost);
 
 module.exports = router;

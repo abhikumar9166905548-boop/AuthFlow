@@ -430,6 +430,29 @@
     </div>
   </div>
 
+  <!-- ADMIN PAGE -->
+<div class="page" id="adminPage">
+  <div class="profile-wrap">
+    <div class="section-title">⚙️ Admin Panel</div>
+    <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+      <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--accent)" id="adminUserCount">0</div>
+        <div style="font-size:12px;color:var(--muted)">Total Users</div>
+      </div>
+      <div style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center">
+        <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:700;color:var(--accent)" id="adminPostCount">0</div>
+        <div style="font-size:12px;color:var(--muted)">Total Posts</div>
+      </div>
+    </div>
+    <div class="profile-tabs" style="margin-bottom:14px">
+      <div class="profile-tab active" onclick="switchAdminTab('users',this)">Users</div>
+      <div class="profile-tab" onclick="switchAdminTab('posts',this)">Posts</div>
+    </div>
+    <div id="adminUsersList"></div>
+    <div id="adminPostsList" style="display:none"></div>
+  </div>
+</div>
+
   <!-- EXPLORE -->
   <div class="page" id="explorePage">
     <div class="explore-wrap">
@@ -651,6 +674,10 @@
       <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>Profile</span>
     </div>
+    <div class="nav-item" onclick="showPage('admin')" id="nav-admin" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      <span>Admin</span>
+    </div>
   </div>
 </div>
 
@@ -722,6 +749,7 @@ function showPage(page){
   if(page==='explore')loadExplore();
   if(page==='reels')loadReels();
   if(page==='dm')loadInbox();
+  if(page==='admin')loadAdminUsers();
 }
 function closeSheetOutside(e,id,fn){if(e.target===document.getElementById(id))fn()}
 
@@ -827,6 +855,7 @@ function showApp(user){
   document.getElementById('mainApp').style.display='block';
   updateTopAvatar(user);
   initSocket(user._id);
+  if(user.isAdmin)document.getElementById('nav-admin').style.display='flex';
   loadFeed();loadStories();loadSuggestions();loadNotifCount();loadDMCount();
 }
 // Real-time notifications
@@ -1858,6 +1887,86 @@ async function openExplorePost(postId){
     </div>`;
   sheet.onclick=(e)=>{if(e.target===sheet)sheet.remove();};
   document.body.appendChild(sheet);
+}
+// ADMIN PANEL
+function switchAdminTab(tab,el){
+  document.querySelectorAll('.profile-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('adminUsersList').style.display=tab==='users'?'block':'none';
+  document.getElementById('adminPostsList').style.display=tab==='posts'?'block':'none';
+  if(tab==='users')loadAdminUsers();
+  if(tab==='posts')loadAdminPosts();
+}
+
+async function loadAdminUsers(){
+  try{
+    const res=await fetch(`${API}/auth/admin/users`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    document.getElementById('adminUserCount').textContent=data.users.length;
+    document.getElementById('adminUsersList').innerHTML=data.users.map(u=>`
+      <div class="user-card">
+        <div class="user-card-left">
+          <div class="post-avatar">${u.profilePhoto?`<img src="${u.profilePhoto}"/>`:(u.name||'U')[0].toUpperCase()}</div>
+          <div class="user-info">
+            <h4>${u.name} ${u.isVerifiedBadge?'<span style="background:#7c6cfc;color:#fff;border-radius:50%;width:14px;height:14px;font-size:9px;display:inline-flex;align-items:center;justify-content:center;margin-left:4px">✓</span>':''} ${u.isAdmin?'👑':''}</h4>
+            <p>${u.email}</p>
+            <p style="font-size:11px;color:var(--muted)">Followers: ${u.followers?.length||0} | Following: ${u.following?.length||0}</p>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="action-btn" onclick="adminToggleBadge('${u._id}',this)">${u.isVerifiedBadge?'Remove ✓':'Give ✓'}</button>
+          ${!u.isAdmin?`<button class="action-btn delete" onclick="adminDeleteUser('${u._id}',this)">🗑 Delete</button>`:''}
+        </div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function loadAdminPosts(){
+  try{
+    const res=await fetch(`${API}/auth/admin/posts`,{headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    document.getElementById('adminPostCount').textContent=data.posts.length;
+    document.getElementById('adminPostsList').innerHTML=data.posts.map(p=>`
+      <div class="post-card">
+        <div class="post-header">
+          <div class="post-header-left">
+            <div class="post-avatar">${(p.user?.name||'U')[0].toUpperCase()}</div>
+            <div><div class="post-name">${p.user?.name||'Unknown'}</div><div class="post-time">${new Date(p.createdAt).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div></div>
+          </div>
+          <button class="action-btn delete" onclick="adminDeletePost('${p._id}',this)">🗑</button>
+        </div>
+        ${p.image?`<img class="post-img" src="${p.image}" loading="lazy"/>`:''}
+        ${p.content?`<div class="post-content">${p.content}</div>`:''}
+        <div style="padding:6px 14px;font-size:12px;color:var(--muted)">❤️ ${p.likes?.length||0} | 💬 Reports: ${p.reports?.length||0}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+async function adminToggleBadge(userId,btn){
+  try{
+    const res=await fetch(`${API}/auth/verify/${userId}`,{method:'PUT',headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    btn.textContent=data.isVerifiedBadge?'Remove ✓':'Give ✓';
+    loadAdminUsers();
+  }catch(e){}
+}
+
+async function adminDeleteUser(userId,btn){
+  if(!confirm('Is user ko delete karna chahte ho?'))return;
+  try{
+    const res=await fetch(`${API}/auth/admin/users/${userId}`,{method:'DELETE',headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    if(data.success)loadAdminUsers();
+  }catch(e){}
+}
+
+async function adminDeletePost(postId,btn){
+  if(!confirm('Is post ko delete karna chahte ho?'))return;
+  try{
+    const res=await fetch(`${API}/auth/admin/posts/${postId}`,{method:'DELETE',headers:{Authorization:`Bearer ${getToken()}`}});
+    const data=await res.json();
+    if(data.success)loadAdminPosts();
+  }catch(e){}
 }
 
 // ===================== AUTO LOGIN =====================

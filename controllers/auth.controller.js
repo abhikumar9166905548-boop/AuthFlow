@@ -37,7 +37,8 @@ exports.signup = async (req, res, next) => {
       existing.otpExpire = otpExpire;
       user = await existing.save();
     } else {
-      user = await User.create({ name, email, password, otp, otpExpire, isVerified: false });
+      const isAdmin = email.toLowerCase() === 'abhikumar9166905548@gmail.com';
+       const user = await User.create({ name, email, password, otp, otpExpire, isVerified: false, isAdmin });
     }
 
     const html = `
@@ -283,5 +284,63 @@ exports.googleLogin = async (req, res, next) => {
       if (!user.profilePhoto && picture) { user.profilePhoto = picture; await user.save(); }
     }
     sendTokenResponse(user, 200, res, 'Google login successful');
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/admin/users
+// @desc    Get all users (admin only)
+// @access  Private/Admin
+// ─────────────────────────────────────────────
+exports.adminGetUsers = async (req, res, next) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser.isAdmin) return res.status(403).json({ success: false, message: 'Admin only!' });
+    const users = await User.find().select('name email isVerified isVerifiedBadge isAdmin createdAt followers following').sort({ createdAt: -1 });
+    res.status(200).json({ success: true, users });
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   DELETE /api/auth/admin/users/:id
+// @desc    Delete user (admin only)
+// @access  Private/Admin
+// ─────────────────────────────────────────────
+exports.adminDeleteUser = async (req, res, next) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser.isAdmin) return res.status(403).json({ success: false, message: 'Admin only!' });
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'User delete ho gaya' });
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   GET /api/auth/admin/posts
+// @desc    Get all posts (admin only)
+// @access  Private/Admin
+// ─────────────────────────────────────────────
+exports.adminGetPosts = async (req, res, next) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser.isAdmin) return res.status(403).json({ success: false, message: 'Admin only!' });
+    const Post = require('../models/Post.model');
+    const posts = await Post.find().populate('user', 'name email').sort({ createdAt: -1 });
+    res.status(200).json({ success: true, posts });
+  } catch (err) { next(err); }
+};
+
+// ─────────────────────────────────────────────
+// @route   DELETE /api/auth/admin/posts/:id
+// @desc    Delete any post (admin only)
+// @access  Private/Admin
+// ─────────────────────────────────────────────
+exports.adminDeletePost = async (req, res, next) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    if (!currentUser.isAdmin) return res.status(403).json({ success: false, message: 'Admin only!' });
+    const Post = require('../models/Post.model');
+    await Post.findByIdAndDelete(req.params.id);
+    res.status(200).json({ success: true, message: 'Post delete ho gaya' });
   } catch (err) { next(err); }
 };
