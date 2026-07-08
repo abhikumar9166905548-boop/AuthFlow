@@ -3,28 +3,29 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
+const path = require('path'); 
 const { Server } = require('socket.io');
+const dns = require('dns');
 
-// ✅ GraphQL
+dns.setServers(['8.8.8.8', '8.8.4.4']); 
+
 const { graphqlHTTP } = require('express-graphql');
 const { buildSchema } = require('graphql');
 
-dotenv.config();
+process.env.CLIENT_URL = 'http://localhost:3000';
+process.env.SENDGRID_API_KEY = 'SG.dummy_key_to_prevent_crash_for_now';
+process.env.MONGO_URI = 'mongodb+srv://abhikumar9166905548_db_user:AbhiRollera669055@cluster0.imxuscy.mongodb.net/rollera?retryWrites=true&w=majority&appName=Cluster0';
 
 const app = express();
 const server = http.createServer(app);
 
-// ================= SOCKET.IO SETUP =================
 const io = new Server(server, {
   cors: { origin: process.env.CLIENT_URL || '*' }
 });
 
-// ✅ GLOBAL IO ACCESS (IMPORTANT)
 app.set("io", io);
-
 app.set('trust proxy', 1);
 
-// ================= GRAPHQL SETUP =================
 const schema = buildSchema(`
   type Query {
     hello: String
@@ -43,7 +44,6 @@ app.use('/graphql', graphqlHTTP({
   graphiql: true
 }));
 
-// ================= MIDDLEWARE =================
 app.use(cors({ origin: process.env.CLIENT_URL || '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -58,37 +58,35 @@ app.use(express.static('public', {
   }
 }));
 
-// ================= ROUTES =================
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/posts', require('./routes/post.routes'));
 app.use('/api/stories', require('./routes/story.routes'));
 app.use('/api/messages', require('./routes/message.routes'));
-app.use('/api/comments', require('./routes/commentRoutes'));
+app.use('/api/comments', require('./routes/comment.routes'));
 
-// ================= HOME =================
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ================= FALLBACK =================
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/graphql')) return next();
-  res.sendFile(__dirname + '/public/index.html');
+app.get(/^(?!\/(api|graphql)).*$/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ================= SOCKET LOGIC =================
+app.use('/api', (req, res) => {
+  res.status(404).json({ success: false, message: "API Route not found" });
+});
+
 const onlineUsers = new Map();
 
 io.on('connection', (socket) => {
   console.log("🔥 User connected:", socket.id);
 
-  // ===== USER JOIN =====
   socket.on('join', (userId) => {
+    socket.userId = userId;
     onlineUsers.set(userId, socket.id);
     io.emit('onlineUsers', Array.from(onlineUsers.keys()));
   });
 
-  // ===== MESSAGE =====
   socket.on('sendMessage', ({ senderId, receiverId, content }) => {
     const receiverSocket = onlineUsers.get(receiverId);
     if (receiverSocket) {
@@ -100,7 +98,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // ===== ROOMS =====
   socket.on("joinReel", (reelId) => {
     socket.join(reelId);
     console.log("Joined reel:", reelId);
@@ -111,35 +108,29 @@ io.on('connection', (socket) => {
     console.log("Joined post:", postId);
   });
 
-  // ===== DISCONNECT =====
   socket.on('disconnect', () => {
-    for (const [userId, socketId] of onlineUsers.entries()) {
-      if (socketId === socket.id) {
-        onlineUsers.delete(userId);
-        break;
-      }
+    if (socket.userId) {
+      onlineUsers.delete(socket.userId);
+      io.emit('onlineUsers', Array.from(onlineUsers.keys()));
     }
-    io.emit('onlineUsers', Array.from(onlineUsers.keys()));
     console.log("❌ User disconnected:", socket.id);
   });
 });
 
-// ================= ERROR HANDLER =================
 app.use((err, req, res, next) => {
   console.error("💥 Error:", err);
   res.status(500).json({ success: false, message: err.message });
 });
 
-// ================= DB + SERVER =================
 const PORT = process.env.PORT || 5000;
 
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('✅ MongoDB connected');
+    console.log('✅ MongoDB connected successfully');
     server.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🚀 Server running perfectly on port ${PORT}`);
     });
   })
   .catch(err => {
-    console.error('❌ MongoDB error:', err.message);
+    console.error('❌ MongoDB connection error:', err.message);
   });

@@ -17,7 +17,6 @@ const {
   savePost,
   getSavedPosts,
   blockUser,
-
   getSuggestions,
   toggleVerification,
   verifyOtp,
@@ -34,7 +33,6 @@ const {
   adminUpdateUser,
   adminUpdateStatus,
   adminGetStats
-
 } = require('../controllers/auth.controller');
 
 const { protect } = require('../middleware/auth.middleware');
@@ -52,7 +50,14 @@ const validate = (req, res, next) => {
   next();
 };
 
-// AUTH
+router.get('/login', (req, res) => {
+  res.json({ success: true, message: "Use POST method with Postman to login" });
+});
+
+router.get('/signup', (req, res) => {
+  res.json({ success: true, message: "Use POST method with Postman to signup" });
+});
+
 router.post('/signup', authLimiter,
   [body('name').isLength({ min: 2 }), body('email').isEmail(), body('password').isLength({ min: 6 })],
   validate, signup
@@ -66,20 +71,17 @@ router.post('/login', authLimiter,
 router.get('/me', protect, getMe);
 router.post('/logout', protect, logout);
 
-// PASSWORD
 router.post('/forgot-password', authLimiter, [body('email').isEmail()], validate, forgotPassword);
 router.put('/reset-password/:token', [body('password').isLength({ min: 6 })], validate, resetPassword);
 
-// USERS
 router.get('/users', protect, searchUsers);
 router.put('/follow/:id', protect, followUser);
 router.get('/notifications', protect, getNotifications);
 router.put('/profile/update', protect, updateProfile);
 router.put('/posts/:id/save', protect, savePost);
-router.get('/posts/saved', protect, getSavedPosts);
+router.get('/getSavedPosts', protect, getSavedPosts);
 router.put('/block/:id', protect, blockUser);
 
-// EXTRA
 router.get('/suggestions', protect, getSuggestions);
 router.put('/verify/:id', protect, toggleVerification);
 router.post('/verify-otp', verifyOtp);
